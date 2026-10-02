@@ -1,0 +1,36 @@
+import type { TxType } from '../lib/types'
+
+/** Stored category keys (English). Display names come from the `category.<key>` translations. */
+export const categories: Record<TxType, string[]> = {
+  expense: ['food', 'transport', 'housing', 'shopping', 'entertainment', 'health', 'education', 'bills', 'gifts', 'other'],
+  income: ['salary', 'bonus', 'interest', 'investment', 'gift', 'other'],
+}
+
+/**
+ * Expense categories that are really transfers into savings / investments (see the Investments tab).
+ * They reduce the cash balance but are not spending, so charts and spending totals leave them out.
+ */
+export const TRANSFER_CATEGORIES = ['savings', 'investment']
+
+/** Placeholder for transactions not classified yet (e.g. from the iPhone Shortcut); highlighted in the list. */
+export const UNCATEGORIZED = 'none'
+
+/** Vietnamese names written before categories became keys (API rows and the old localStorage import). */
+const LEGACY: Record<string, string> = {
+  'Ăn uống': 'food',
+  'Di chuyển': 'transport',
+  'Nhà ở': 'housing',
+  'Mua sắm': 'shopping',
+  'Giải trí': 'entertainment',
+  'Sức khoẻ': 'health',
+  'Giáo dục': 'education',
+  'Hoá đơn': 'bills',
+  Lương: 'salary',
+  Thưởng: 'bonus',
+  'Đầu tư': 'investment',
+  'Quà tặng': 'gift',
+  Khác: 'other',
+}
+
+/** Category key for a stored value; unknown (custom) values pass through unchanged. */
+export const categoryKey = (raw: string) => LEGACY[raw] ?? raw

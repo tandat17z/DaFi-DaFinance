@@ -1,0 +1,105 @@
+import Shortcuts
+#Color: green, #Icon: creditcard
+
+// Log Payment — DaFinance iPhone Shortcut (Jellycuts source). Setup: docs/iphone-shortcut.md
+// Run with Back Tap while a bank receipt is on screen. The screenshot and OCR text stay on the
+// phone; only amount, note and time are sent. Regexes avoid backslashes on purpose ([0-9],
+// [[:space:]]) so they survive the Jelly string escaping unchanged.
+
+var Token = "PASTE_DEVICE_TOKEN_HERE"
+// Jelly treats a number literal in a comparison as a variable name, so compare against this.
+var One = 1
+var Endpoint = "https://<api-host>/integrations/ios-shortcuts/transactions"
+
+// 1. Screenshot → on-device OCR (nothing is saved to Photos)
+takeScreenshot() >> Shot
+// Jellycuts refuses extractTextFromImage for iOS 18 targets, although the action exists on iOS 18.
+// After importing into Shortcuts: add "Extract Text from Image" (input: Screenshot) right before
+// "Set variable OcrText", set that variable to "Text from Image", and delete the placeholder text.
+var OcrText = "REPLACE_WITH_EXTRACT_TEXT_FROM_IMAGE"
+
+// 2. Receipt template
+var Template = "manual"
+if(OcrText .contains "MSB") {
+    Template = "msb"
+}
+if(OcrText .contains "viettel money") {
+    Template = "viettel"
+}
+
+// 3. Amount: exactly one line like "8,500,000 VND" or "2.040.000đ", otherwise ask
+matchText(text: OcrText, regex: "(?im)^ *[0-9]{1,}(?:[.,][0-9]{3})* *(?:VND|VNĐ|đ|₫) *$", caseSensitive: false) >> AmountMatches
+count(type: Items, input: AmountMatches) >> AmountCount
+var Amount = ""
+if(AmountCount == One) {
+    getItemFromList(list: AmountMatches, type: First Item) >> AmountLine
+    replaceText(input: AmountLine, find: "[^0-9]", replace: "", isRegex: true, caseSensitive: false) >> AmountDigits
+    Amount = AmountDigits
+}
+
+// 4. Note: the block between the template's labels (never the account number / names)
+var Note = ""
+if(Template == "msb") {
+    if(OcrText .contains "Thời gian") {
+        replaceText(input: OcrText, find: "(?s)^.*?Nội dung chuyển khoản", replace: "", isRegex: true, caseSensitive: false) >> MsbAfter
+        replaceText(input: MsbAfter, find: "(?s)Thời gian.*$", replace: "", isRegex: true, caseSensitive: false) >> MsbNote
+        Note = MsbNote
+    }
+}
+if(Template == "viettel") {
+    if(OcrText .contains "Xem chi tiết") {
+        replaceText(input: OcrText, find: "(?s)^.*?MBBank", replace: "", isRegex: true, caseSensitive: false) >> VtAfter
+        replaceText(input: VtAfter, find: "(?s)Xem chi tiết.*$", replace: "", isRegex: true, caseSensitive: false) >> VtNote
+        Note = VtNote
+    }
+}
+replaceText(input: Note, find: "[[:space:]]+", replace: " ", isRegex: true, caseSensitive: false) >> NoteOneLine
+replaceText(input: NoteOneLine, find: "^ +| +$", replace: "", isRegex: true, caseSensitive: false) >> NoteTrimmed
+
+// 5. Review / edit (pre-filled; change anything that OCR got wrong)
+askForInput(prompt: "Amount (VND)", type: Number, default: Amount, allowDecimal: false, allowNegative: false) >> FinalAmount
+askForInput(prompt: "Note", type: Text, default: NoteTrimmed) >> FinalNote
+
+// 6. Date and time: "11:11 01/07/2026" on the receipt, otherwise ask (never the status-bar clock)
+matchText(text: OcrText, regex: "[0-9]{2}:[0-9]{2} {1,}[0-9]{2}/[0-9]{2}/[0-9]{4}", caseSensitive: false) >> TimeMatches
+count(type: Items, input: TimeMatches) >> TimeCount
+var DateTime = ""
+var TimeSource = "receipt"
+if(TimeCount == One) {
+    getItemFromList(list: TimeMatches, type: First Item) >> TimeLine
+    replaceText(input: TimeLine, find: "([0-9]{2}):([0-9]{2}) {1,}([0-9]{2})/([0-9]{2})/([0-9]{4})", replace: "$5-$4-$3T$1:$2:00+07:00", isRegex: true, caseSensitive: false) >> ReceiptIso
+    DateTime = ReceiptIso
+} else {
+    menu("No time on the receipt", ["Use current time", "Enter date and time", "Cancel"]) {
+        case("Use current time"):
+            formatDate(date: "${CurrentDate}", dStyle: Custom, custom: "yyyy-MM-dd'T'HH:mm:ssxxx") >> NowIso
+            DateTime = NowIso
+            TimeSource = "capture"
+        case("Enter date and time"):
+            askForInput(prompt: "Date and time", type: Date and Time) >> PickedDate
+            formatDate(date: "${PickedDate}", dStyle: Custom, custom: "yyyy-MM-dd'T'HH:mm:ssxxx") >> PickedIso
+            DateTime = PickedIso
+            TimeSource = "manual"
+        case("Cancel"):
+            exit()
+    }
+}
+
+// 7. Confirm, then send. The run key makes a resend of this same run idempotent on the server.
+formatDate(date: "${CurrentDate}", dStyle: Custom, custom: "yyyyMMddHHmmssSSS") >> RunKey
+menu("Send ${FinalAmount} VND · ${FinalNote} · ${DateTime}?", ["Send", "Cancel"]) {
+    case("Send"):
+        downloadURL(url: Endpoint, method: POST, headers: {"Authorization": "Bearer ${Token}", "Content-Type": "application/json"}, requestType: Json, requestJSON: {"schema_version": "1", "client_transaction_id": "${RunKey}", "type": "expense", "amount": "${FinalAmount}", "note": "${FinalNote}", "occurred_at": "${DateTime}", "time_source": "${TimeSource}", "receipt_template": "${Template}", "reviewed": "true"}) >> Response
+        getDictionaryFrom(input: Response) >> Result
+        valueFor(key: "transaction_id", dictionary: Result) >> TxId
+        if(TxId != nil) {
+            valueFor(key: "message", dictionary: Result) >> OkMessage
+            sendNotification(body: "${OkMessage}: ${FinalAmount} VND", title: "Log Payment", sound: false)
+        } else {
+            valueFor(key: "error", dictionary: Result) >> ErrorInfo
+            valueFor(key: "message", dictionary: ErrorInfo) >> ErrorMessage
+            alert(alert: "Could not save. ${ErrorMessage}", title: "Log Payment", cancel: false)
+        }
+    case("Cancel"):
+        exit()
+}

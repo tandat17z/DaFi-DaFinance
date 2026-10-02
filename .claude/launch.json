@@ -1,0 +1,77 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "finance-standalone",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "port": 5174
+    },
+    {
+      "name": "finance",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:demo"
+      ],
+      "port": 5174
+    },
+    {
+      "name": "api",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "api:demo"
+      ],
+      "port": 8787
+    },
+    {
+      "name": "finance-real",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:real"
+      ],
+      "port": 5175
+    },
+    {
+      "name": "api-real",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "api:real"
+      ],
+      "port": 8788
+    },
+    {
+      "name": "api-guest",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "api:guest"
+      ],
+      "port": 8787
+    },
+    {
+      "name": "api-owner",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "api:owner"
+      ],
+      "port": 8795
+    },
+    {
+      "name": "hub-owner",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "set NEXT_PUBLIC_API_URL=http://localhost:8795&& npm --prefix ../../hub run dev"
+      ],
+      "port": 3000
+    }
+  ]
+}

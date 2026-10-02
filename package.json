@@ -1,0 +1,36 @@
+{
+  "name": "finance",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --mode standalone",
+    "dev:demo": "vite --mode demo",
+    "dev:real": "vite --mode real",
+    "api:demo": "npm --prefix ../api run dev -- --port 8787",
+    "api:guest": "npm --prefix ../api run dev -- --port 8787 --var DEV_ADMIN_EMAIL:guest@example.com --var ADMIN_EMAILS:owner@example.com",
+    "api:owner": "npm --prefix ../api run dev -- --port 8795 --var DEV_ADMIN_EMAIL:owner@example.com --var ADMIN_EMAILS:owner@example.com",
+    "api:real": "npm --prefix ../api exec -- wrangler dev -c ../DaFinance/.claude/dev-real/wrangler.toml --port 8788",
+    "build": "tsc -b && vite build",
+    "build:standalone": "tsc -b && vite build --mode standalone",
+    "lint": "oxlint",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fontsource-variable/geist": "^5.3.0",
+    "@fontsource-variable/geist-mono": "^5.3.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "oxlint": "^1.81.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0"
+  }
+}
