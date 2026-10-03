@@ -29,7 +29,7 @@ function useColumns(): [number, (el: HTMLDivElement | null) => void] {
 }
 
 /** Month's transactions grouped by day (newest first), each day with its net total. */
-export function TxList({ items, focusId, label, fileTag, onSave, onDelete, onCategorize }: { items: Transaction[]; focusId?: string | null; label: string; fileTag: string; onSave: (t: Transaction) => Promise<boolean>; onDelete: (id: string) => void; onCategorize: (t: Transaction, category: string) => void }) {
+export function TxList({ items, overIds, focusId, label, fileTag, onSave, onDelete, onCategorize }: { items: Transaction[]; overIds?: Set<string>; focusId?: string | null; label: string; fileTag: string; onSave: (t: Transaction) => Promise<boolean>; onDelete: (id: string) => void; onCategorize: (t: Transaction, category: string) => void }) {
   const { t } = useI18n()
   const { formatDayHeader, formatVnd, categoryName } = useFormat()
   const cats = useCategories()
@@ -151,7 +151,7 @@ export function TxList({ items, focusId, label, fileTag, onSave, onDelete, onCat
                       aria-current={tx.id === focusId || undefined}
                       className={cn(
                         'group -mx-2 grid grid-cols-[2rem_minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1.5 rounded-lg border-l-2 px-2 py-4 transition-colors hover:bg-surface-2 sm:gap-x-4',
-                        tx.id === focusId ? 'border-accent bg-accent/10 ring-1 ring-accent/40' : isNone(tx) ? 'border-cat-2 bg-cat-2/5' : 'border-transparent',
+                        tx.id === focusId ? 'border-accent bg-accent/10 ring-1 ring-accent/40' : isNone(tx) ? 'border-cat-2 bg-cat-2/5' : overIds?.has(tx.id) ? 'border-over bg-over/10' : 'border-transparent',
                       )}
                     >
                       <span
@@ -168,7 +168,7 @@ export function TxList({ items, focusId, label, fileTag, onSave, onDelete, onCat
                           <span className={cn('shrink-0 rounded-full border px-1.5 py-px text-[10px]', tx.type === 'income' ? 'border-income/40 text-income' : 'border-expense/40 text-expense')}>{t('list.forMonth', { month: `${Number(tx.forMonth.slice(5, 7))}/${tx.forMonth.slice(0, 4)}` })}</span>
                         )}
                       </div>
-                      <span className={cn('self-center text-right font-mono text-sm whitespace-nowrap tabular-nums', tx.type === 'income' ? 'text-income' : 'text-fg')}>
+                      <span className={cn('self-center text-right font-mono text-sm whitespace-nowrap tabular-nums', tx.type === 'income' ? 'text-income' : overIds?.has(tx.id) ? 'text-over' : 'text-fg')}>
                         {tx.type === 'income' ? '+' : '−'}
                         {formatVnd(tx.amount)}
                       </span>

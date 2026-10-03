@@ -31,9 +31,17 @@
   --inc-3: #3c9e44;
   --inc-4: #3a74e0;
   --inc-5: #7e9f12;
+
+  --over: #e8730c;
+}
+
+/* Orange for spending over its category budget (not in the kit). */
+:root {
+  --over: #fb923c;
 }
 
 @theme inline {
+  --color-over: var(--over);
   --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
 }

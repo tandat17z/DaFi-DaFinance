@@ -17,7 +17,7 @@ import { Button, HeroTile, StatTile } from './components/ui'
 import { StorageNotice } from './components/StorageNotice'
 import { SettingsLauncher } from './components/Settings'
 import { API_ACCOUNT_URL, API_ME_URL, type ApiError, STANDALONE, toApiError } from './lib/api'
-import { askNotifyPermission, notifyOverBudget, overBudget } from './lib/budgetAlert'
+import { askNotifyPermission, notifyOverBudget, overBudget, overBudgetIds } from './lib/budgetAlert'
 import { cn } from './lib/cn'
 import { useCategories } from './lib/settings'
 import { usePeriodLabel } from './lib/usePeriodLabel'
@@ -47,6 +47,7 @@ export default function App() {
   const store = useStore()
   const { budgetOf } = useCategories()
   const all = useAllTransactions()
+  const overIds = useMemo(() => overBudgetIds(all.items, budgetOf), [all.items, budgetOf])
   const legacy = useLegacyImport(all.reload)
   const [editing, setEditing] = useState<Transaction | null>(null)
   const [actionError, setActionError] = useState<ApiError | null>(null)
@@ -263,7 +264,7 @@ export default function App() {
               {entry === 'tx' && (
                 <div className="lg:h-[calc(100dvh-6rem)] lg:min-h-[30rem]">
                   <div className="lg:h-full">
-                    <TxList items={items} focusId={focusId} label={periodLabel(unit, anchor)} fileTag={`${from}_${to}`} onSave={(tx) => run(() => store.saveTransaction(tx))} onDelete={(id) => void run(() => store.deleteTransaction(id))} onCategorize={(tx, category) => void run(() => store.saveTransaction({ ...tx, category }))} />
+                    <TxList items={items} overIds={overIds} focusId={focusId} label={periodLabel(unit, anchor)} fileTag={`${from}_${to}`} onSave={(tx) => run(() => store.saveTransaction(tx))} onDelete={(id) => void run(() => store.deleteTransaction(id))} onCategorize={(tx, category) => void run(() => store.saveTransaction({ ...tx, category }))} />
                   </div>
                 </div>
               )}

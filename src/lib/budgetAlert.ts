@@ -26,6 +26,29 @@ export function overBudget(all: Transaction[], tx: Transaction, budget: number):
   return spent > budget ? spent - budget : null
 }
 
+/**
+ * Ids of spending that took its category over the monthly budget: walking each category-month in date
+ * order, every row from the one that crossed the limit on.
+ */
+export function overBudgetIds(all: Transaction[], budgetOf: (category: string) => number): Set<string> {
+  const groups = new Map<string, Transaction[]>()
+  for (const tx of all) {
+    if (!isSpending(tx) || !budgetOf(tx.category)) continue
+    const k = `${categoryKey(tx.category)}|${effectiveMonth(tx)}`
+    groups.set(k, [...(groups.get(k) ?? []), tx])
+  }
+  const ids = new Set<string>()
+  for (const list of groups.values()) {
+    const budget = budgetOf(list[0].category)
+    let spent = 0
+    for (const tx of list.sort((a, b) => `${a.date} ${a.time ?? ''}`.localeCompare(`${b.date} ${b.time ?? ''}`))) {
+      spent += tx.amount
+      if (spent > budget) ids.add(tx.id)
+    }
+  }
+  return ids
+}
+
 /** Vibrates and shows a system notification (through the service worker when there is one). */
 export async function notifyOverBudget(title: string, body: string) {
   try {
@@ -36,8 +59,10 @@ export async function notifyOverBudget(title: string, body: string) {
   try {
     if (!('Notification' in window) || Notification.permission !== 'granted') return
     const reg = await navigator.serviceWorker?.getRegistration()
-    if (reg) await reg.showNotification(title, { body, tag: 'budget', icon: '/icons/icon-192.png' })
-    else new Notification(title, { body, tag: 'budget' })
+    // renotify: a new alert with the same tag otherwise replaces the old one silently (no pop-up, no buzz).
+    const options = { body, tag: 'budget', renotify: true, vibrate: [200, 100, 200], icon: '/icons/icon-192.png' } as NotificationOptions
+    if (reg) await reg.showNotification(title, options)
+    else new Notification(title, options)
   } catch {
     // Notification not shown; the in-app message still says it.
   }
