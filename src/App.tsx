@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { AppBrand } from './brand'
+import { AppBrand } from '@tada/kit/brand'
 import { changelog } from './config/changelog'
 import { ApiNotice } from './components/ApiNotice'
 import { DataModeBadge } from './components/DataModeBadge'

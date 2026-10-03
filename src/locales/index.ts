@@ -1,4 +1,4 @@
-import { createI18n } from '../i18n'
+import { createI18n } from '@tada/kit/i18n'
 import { en } from './en'
 import { vi } from './vi'
 

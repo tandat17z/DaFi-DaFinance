@@ -1,64 +1,8 @@
 @import 'tailwindcss';
-
-/* Design tokens shared with the Workspace hub. Dark only for now. */
-:root {
-  color-scheme: dark;
-
-  --bg: #08090b;
-  --surface: #0f1114;
-  --surface-2: #14171b;
-  --border: #1f2328;
-  --border-strong: #2d3239;
-  --fg: #e7e9ec;
-  --muted: #9ba2ac;
-  --subtle: #8a919c;
-  --accent: #7ee0c3;
-  --accent-fg: #04130e;
-
-  /* Money */
-  --income: #7ee0c3;
-  --expense: #f28b82;
-
-  /* Category slices (donut): distinguishable hues, fixed order */
-  --cat-1: #f28b82;
-  --cat-2: #f2c17d;
-  --cat-3: #7ee0c3;
-  --cat-4: #7db8f2;
-  --cat-5: #b69cf2;
-  --cat-other: #5d6570;
-  /* Income slices: bright greens / cyans / blues, apart from the warm expense hues */
-  --inc-1: #7ee0c3;
-  --inc-2: #5fd7f0;
-  --inc-3: #8be28f;
-  --inc-4: #86b7ff;
-  --inc-5: #c6f26b;
-}
+/* Colour tokens shared by the tandat17z apps (and the Tailwind theme for them). Dark only for now. */
+@import '@tada/kit/tokens.css';
 
 @theme inline {
-  --color-bg: var(--bg);
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
-  --color-border: var(--border);
-  --color-border-strong: var(--border-strong);
-  --color-fg: var(--fg);
-  --color-muted: var(--muted);
-  --color-subtle: var(--subtle);
-  --color-accent: var(--accent);
-  --color-accent-fg: var(--accent-fg);
-  --color-income: var(--income);
-  --color-expense: var(--expense);
-  --color-cat-1: var(--cat-1);
-  --color-cat-2: var(--cat-2);
-  --color-cat-3: var(--cat-3);
-  --color-cat-4: var(--cat-4);
-  --color-cat-5: var(--cat-5);
-  --color-cat-other: var(--cat-other);
-  --color-inc-1: var(--inc-1);
-  --color-inc-2: var(--inc-2);
-  --color-inc-3: var(--inc-3);
-  --color-inc-4: var(--inc-4);
-  --color-inc-5: var(--inc-5);
-
   --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
 }

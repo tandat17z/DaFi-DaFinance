@@ -1,4 +1,4 @@
-import type { ChangelogEntry } from '../brand'
+import type { ChangelogEntry } from '@tada/kit/brand'
 
 /** Newest first. The first entry is the version shown in the header: add a new one on every release. */
 export const changelog: ChangelogEntry[] = [

@@ -19,6 +19,7 @@
   "dependencies": {
     "@fontsource-variable/geist": "^5.3.0",
     "@fontsource-variable/geist-mono": "^5.3.0",
+    "@tada/kit": "github:tandat17z/tada-kit#v0.1.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },

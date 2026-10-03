@@ -13,11 +13,13 @@ sibling repos, deploy) is in `CLAUDE.local.md`, which is git-ignored — read it
   approved users on the server, everyone else in the browser, with a request for server storage.
 
 It can be launched from a Workspace hub (`VITE_WORKSPACE_URL`, header "← Workspace"; hidden when unset).
-The header shows the shared `<tdz-account>` menu (`public/account.js`, canonical copy in the hub repo);
+The header shows the shared `<tdz-account>` menu (`@tada/kit/account-menu`, imported in `main.tsx`);
 its `account-url` shows where data is stored and sends the storage request.
 
 Stays decoupled from other apps: never import code, types or env vars from sibling repos (the API is
-used over HTTP only; `src/lib/types.ts` mirrors its contract).
+used over HTTP only; `src/lib/types.ts` mirrors its contract). The one exception is **`@tada/kit`**
+(public repo `tandat17z/tada-kit`, pinned by git tag in `package.json`): i18n, brand, account gate +
+menu, the `/api` proxy and the colour tokens. Change shared code there, tag it, then bump the tag here.
 
 ## Public repository rules
 
@@ -37,15 +39,15 @@ This repository is public. Before every commit:
 
 - Code, file names, comments, commit messages, docs, API/database field names and stored enum values (transaction `type`, category keys like `food`, `salary`): English.
 - Conversation with the developer: Vietnamese. UI text is translated (`en` / `vi`, default `vi`, choice saved in `localStorage`); money/dates/months are formatted per locale via `useFormat()`. Text the user types (notes) is stored as typed, never translated.
-- Language support lives in the self-contained `src/i18n/` module (see its README) — copy it to other sites. Messages are in `src/locales/en.ts` (reference) and `vi.ts`: add a key to both. No hard-coded UI strings in components.
+- Language support comes from `@tada/kit/i18n` (instance in `src/locales/index.ts`). Messages are in `src/locales/en.ts` (reference) and `vi.ts`: add a key to both. No hard-coded UI strings in components.
 
 ## Tech stack
 
 - Vite + React 19 + TypeScript + Tailwind CSS v4 (`@tailwindcss/vite`), Geist / Geist Mono via `@fontsource-variable`. Charts are plain HTML/CSS bars (no chart library).
 - Data access goes through a `FinanceStore` (`src/lib/storage.ts`): `serverStore` (API) or `localStore(key)` (localStorage, `dafinance.u.<key>.*`). Components use `useStore()`, never `apiFetch` for data. Totals are computed in the app.
-- Hosted: the API is called at `/api/...` on this host; `worker/index.js` forwards only `/api/v1/finance/*` and `/api/health` to the API Worker (service binding) with the Access JWT. Where data lives comes from `GET /v1/finance/account` (`src/lib/account.ts`, read by `AccountGate`, re-read when the tab/window comes back): `cloud` → `serverStore`; `local` → `localStore(email)`; `readonly` (grant revoked) → server data copied into the browser once, then local. After approval, `StorageNotice` moves browser data to the server. The API enforces all of this; the frontend only follows it. The old key `dafinance.transactions` is only read for the one-off "Chuyển lên server" import.
+- Hosted: the API is called at `/api/...` on this host; `worker/index.js` (`createApiProxy` from `@tada/kit/proxy`) forwards only `/api/v1/finance/*` and `/api/health` to the API Worker (service binding) with the Access JWT, and refuses cross-site writes. Where data lives comes from `GET /v1/finance/account` (`src/lib/account.ts`, read by `AccountGate` from `@tada/kit/account`, re-read when the tab/window comes back): `cloud` → `serverStore`; `local` → `localStore(email)`; `readonly` (grant revoked) → server data copied into the browser once, then local. After approval, `StorageNotice` moves browser data to the server. The API enforces all of this; the frontend only follows it. The old key `dafinance.transactions` is only read for the one-off "Chuyển lên server" import.
 - Security: no tokens or secrets in the frontend; React escaping only (no `innerHTML` with data); `public/_headers` sets CSP, `X-Frame-Options`, `noindex`; CSV export neutralises formula cells.
-- Theme: **dark only**, design tokens copied from the hub's `globals.css` into `src/index.css` — keep them in sync. Use token classes (`bg-surface`, `border-border`, `text-muted`, `text-income`, `text-expense`…), never raw hex in components.
+- Theme: **dark only**, colour tokens from `@tada/kit/tokens.css` (imported in `src/index.css`, which adds fonts and base styles). Use token classes (`bg-surface`, `border-border`, `text-muted`, `text-income`, `text-expense`…), never raw hex in components.
 - Package manager: npm. Lint: oxlint.
 
 ## Structure
@@ -62,9 +64,7 @@ src/
 │   ├── AccountGate.tsx  # Standalone store, or reads the account and provides the store (server / browser)
 │   └── StorageNotice.tsx# Browser-only banner + storage request; move browser data up after approval
 ├── config/categories.ts # Income / expense category keys (+ legacy Vietnamese name map)
-├── i18n/                # Reusable language module (createI18n, LanguageSwitch)
-├── brand/               # Reusable logo + name + version + changelog dialog (AppBrand); data in config/changelog.ts
-├── locales/             # en.ts, vi.ts dictionaries + the app's i18n instance
+├── locales/             # en.ts, vi.ts dictionaries + the app's i18n instance (@tada/kit/i18n)
 └── lib/                 # types, api client, account, storage (FinanceStore, hooks, legacy import), format, csv, cn
 ```
 

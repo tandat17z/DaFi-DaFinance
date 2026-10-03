@@ -47,7 +47,8 @@ Setup, the server side and every Shortcut action: [docs/iphone-shortcut.md](docs
 ## Tech stack
 
 - Vite + React 19 + TypeScript, Tailwind CSS v4, Geist fonts; charts are plain HTML/CSS
-- Language module in `src/i18n/` (self-contained, reusable), messages in `src/locales/`
+- Shared modules (language, brand, account menu, `/api` proxy, colour tokens) from
+  [`@tada/kit`](https://github.com/tandat17z/tada-kit); messages in `src/locales/`
 - Hosted as Cloudflare Workers static assets (`wrangler.jsonc`, deployed from Git by Workers Builds); `worker/index.js` forwards
   `/api/v1/finance/*` (and `/api/health`) to the API Worker through a service binding
 - Lint: oxlint
@@ -57,8 +58,7 @@ src/
 ├── App.tsx            # header, tabs, period controls, layout
 ├── components/        # forms, list, charts, calendar, portfolio, UI primitives
 ├── config/            # categories, changelog
-├── i18n/ · locales/   # language module + en / vi messages
-├── brand/             # logo, version and changelog dialog
+├── locales/           # en / vi messages
 └── lib/               # types, API client, storage hooks, formatting, CSV, periods
 shortcuts/             # iPhone Shortcut: Scriptable script (+ Jellycuts variant)
 docs/                  # iPhone Shortcut setup
