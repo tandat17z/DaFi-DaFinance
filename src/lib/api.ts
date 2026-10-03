@@ -11,6 +11,8 @@ export const API_LOGIN_URL = `${API_URL}/health`
 export const API_ME_URL = `${API_URL}/v1/finance/me`
 /** Account + storage mode (also read by the account menu). */
 export const API_ACCOUNT_URL = `${API_URL}/v1/finance/account`
+/** Rating + feedback of this app (also read by the account menu). */
+export const API_FEEDBACK_URL = `${API_URL}/v1/finance/feedback`
 
 export class ApiError extends Error {
   status: number

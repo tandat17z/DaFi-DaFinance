@@ -16,7 +16,7 @@ import { TxList } from './components/TxList'
 import { Button, HeroTile, StatTile } from './components/ui'
 import { StorageNotice } from './components/StorageNotice'
 import { SettingsLauncher } from './components/Settings'
-import { API_ACCOUNT_URL, API_ME_URL, type ApiError, STANDALONE, toApiError } from './lib/api'
+import { API_ACCOUNT_URL, API_FEEDBACK_URL, API_ME_URL, type ApiError, STANDALONE, toApiError } from './lib/api'
 import { askNotifyPermission, notifyOverBudget, overBudget, overBudgetIds } from './lib/budgetAlert'
 import { cn } from './lib/cn'
 import { useCategories } from './lib/settings'
@@ -31,6 +31,8 @@ import type { Holding, Transaction } from './lib/types'
 
 /** Hub to go back to; no link when unset (standalone clones). */
 const WORKSPACE_URL: string | undefined = import.meta.env.VITE_WORKSPACE_URL || undefined
+/** Author site linked from the account menu (hidden when unset). */
+const AUTHOR_URL: string | undefined = import.meta.env.VITE_AUTHOR_URL || undefined
 
 /** Id from a `/tx/<id>` deep link, or null. */
 function linkedTransactionId(): string | null {
@@ -193,7 +195,7 @@ export default function App() {
             {(view === 'month' || view === 'entry') && <PeriodBar className="min-w-0 flex-1 justify-center lg:flex-none" unit={unit} anchor={anchor} onChange={setPeriod} marked={markedDates} />}
             <div className="flex shrink-0 items-center gap-2 max-sm:[&_summary>span:last-of-type]:hidden max-sm:[&_summary>svg]:hidden sm:gap-3">
               <SettingsLauncher button={STANDALONE} />
-              {!STANDALONE && <tdz-account key={locale} lang={locale} me-url={API_ME_URL} account-url={API_ACCOUNT_URL} settings />}
+              {!STANDALONE && <tdz-account key={locale} lang={locale} me-url={API_ME_URL} account-url={API_ACCOUNT_URL} feedback-url={API_FEEDBACK_URL} author-url={AUTHOR_URL} settings />}
             </div>
           </div>
         </div>
