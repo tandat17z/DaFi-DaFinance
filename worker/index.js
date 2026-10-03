@@ -5,7 +5,7 @@
 // app and its API calls (no second login, no cross-origin cookies). The API still verifies
 // the Access JWT itself — this proxy adds no identity, it only forwards what Access attached.
 
-/** @param {Request} request @param {{ API: Fetcher, ASSETS: Fetcher, API_PUBLIC_URL: string }} env */
+/** @param {Request} request @param {{ API: Fetcher, ASSETS: Fetcher, API_PUBLIC_URL?: string }} env */
 async function handle(request, env) {
   const url = new URL(request.url);
   if (url.pathname !== "/api" && !url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
@@ -17,8 +17,9 @@ async function handle(request, env) {
     return Response.json({ error: { code: "not_found", message: "Not found" } }, { status: 404 });
   }
 
-  // Keep the API's public origin in the URL so it builds correct absolute links (e.g. media).
-  const target = new URL(url.pathname.slice("/api".length) || "/", env.API_PUBLIC_URL);
+  // A service binding ignores the host. API_PUBLIC_URL (optional) only matters for absolute links
+  // the API builds from the request URL, which the finance routes do not; it stays out of the repo.
+  const target = new URL(path || "/", env.API_PUBLIC_URL || "https://api.internal");
   target.search = url.search;
 
   const headers = new Headers(request.headers);

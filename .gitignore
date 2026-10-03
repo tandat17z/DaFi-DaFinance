@@ -31,4 +31,3 @@ dist-ssr
 
 # Owner-only files with real hosts (see CLAUDE.md "Public repository rules")
 CLAUDE.local.md
-wrangler.jsonc

@@ -1,6 +1,7 @@
 // Cloudflare Workers static assets: serves the Vite build in ./dist.
-// Copy to wrangler.jsonc (git-ignored) and set the real API host before `npx wrangler deploy`.
-// Build: `npm run build`, deploy: `npx wrangler deploy`. Protect the workers.dev URL with Access.
+// Deployed by Cloudflare Workers Builds on every push to master (build `npm run build`, deploy
+// `npx wrangler deploy`); the same commands work by hand. Protect the hostnames with Access.
+// No hosts here (public repo): build-time VITE_WORKSPACE_URL is a Builds variable.
 // /api/* runs worker/index.js, which forwards to the central API Worker (service binding) so the
 // app needs a single Access login. Everything else is served straight from ./dist.
 {
@@ -16,6 +17,5 @@
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*"]
   },
-  "services": [{ "binding": "API", "service": "api" }],
-  "vars": { "API_PUBLIC_URL": "https://<api-host>" }
+  "services": [{ "binding": "API", "service": "api" }]
 }

@@ -48,7 +48,7 @@ Setup, the server side and every Shortcut action: [docs/iphone-shortcut.md](docs
 
 - Vite + React 19 + TypeScript, Tailwind CSS v4, Geist fonts; charts are plain HTML/CSS
 - Language module in `src/i18n/` (self-contained, reusable), messages in `src/locales/`
-- Hosted as Cloudflare Workers static assets (`wrangler.example.jsonc`); `worker/index.js` forwards
+- Hosted as Cloudflare Workers static assets (`wrangler.jsonc`, deployed from Git by Workers Builds); `worker/index.js` forwards
   `/api/v1/finance/*` (and `/api/health`) to the API Worker through a service binding
 - Lint: oxlint
 
@@ -101,10 +101,12 @@ Standalone: upload `dist/` from `npm run build:standalone` to any static host.
 Hosted (Cloudflare Workers, with the API):
 
 ```bash
-cp wrangler.example.jsonc wrangler.jsonc   # set API_PUBLIC_URL to your API host (git-ignored)
-npm run build                              # reads .env.production.local (VITE_WORKSPACE_URL, optional)
-npx wrangler deploy
+npm run build       # VITE_WORKSPACE_URL (optional) from .env.production.local or the build env
+npx wrangler deploy # worker "finance", service binding to a Worker named "api"
 ```
+
+Or connect the repo to the Worker in the Cloudflare dashboard (Workers Builds) with the same two
+commands, so every push to `master` deploys.
 
 Put the app's hostnames (custom domain and `*.workers.dev`) behind a Cloudflare Access policy. The
 API must expose the iPhone Shortcut route without Access (token-protected instead); see the docs.
@@ -112,7 +114,7 @@ API must expose the iPhone Shortcut route without Access (token-protected instea
 ## Privacy
 
 This repository holds code only: no transactions, no tokens, no account data. Local files with
-real settings or hosts are git-ignored (`*.local`, `CLAUDE.local.md`, `wrangler.jsonc`, `.claude/dev-real/`). Keep the device token out of
+real settings or hosts are git-ignored (`*.local`, `CLAUDE.local.md`, `.claude/dev-real/`). Keep the device token out of
 commits; if it leaks, rotate it with `wrangler secret put IOS_SHORTCUT_TOKEN` on the API.
 
 ## Changelog

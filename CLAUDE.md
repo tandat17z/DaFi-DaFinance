@@ -26,7 +26,7 @@ This repository is public. Before every commit:
 - **No infrastructure in tracked files**: no real hostnames or URLs of the deployed app, hub or API,
   no Cloudflare account / database / Access ids, no emails of users. Use env vars, placeholders
   (`https://<api-host>`) or generic words ("the API", "the hub"). Real values go in git-ignored
-  files: `CLAUDE.local.md`, `.env.production.local`, `wrangler.jsonc` (from `wrangler.example.jsonc`),
+  files or the Cloudflare dashboard: `CLAUDE.local.md`, `.env.production.local`, Workers Builds variables,
   `.claude/dev-real/`.
 - Allowed exceptions (public on purpose): the live app `https://finance.tandat17z.workers.dev` and the author site `https://www.tandat17z.workers.dev`, in README only. Never the API or hub hosts.
 - **No secrets anywhere**, not even in examples: tokens, keys, passwords. Anything `VITE_*` is public.
