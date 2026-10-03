@@ -4,6 +4,7 @@ import { LOCALES, type Locale } from '@tada/kit/i18n'
 import { ICON_GROUPS, type IconGroup } from '../config/categories'
 import { cn } from '../lib/cn'
 import { useFormat } from '../lib/format'
+import { useInstall } from '../lib/install'
 import { useCategories, useSettings, type Theme } from '../lib/settings'
 import type { TxType } from '../lib/types'
 import { useI18n } from '../locales'
@@ -46,6 +47,7 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
   const { formatVnd } = useFormat()
   const cats = useCategories()
   const [type, setType] = useState<TxType>('expense')
+  const app = useInstall()
 
   useEffect(() => {
     // Escape in a field (e.g. while renaming) cancels the edit, not the whole drawer.
@@ -96,6 +98,13 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
                 </button>
               ))}
             </div>
+          </section>
+
+          <section className="grid gap-3">
+            <h3 className="font-mono text-[11px] tracking-wider text-subtle uppercase">{t('install.title')}</h3>
+            {app.state === 'ready'
+              ? <Button variant="primary" onClick={app.install}>⤓ {t('install.button')}</Button>
+              : <p className="text-sm text-muted">{t(app.state === 'installed' ? 'install.done' : app.state === 'ios' ? 'install.ios' : 'install.manual')}</p>}
           </section>
 
           <section className="grid gap-3">

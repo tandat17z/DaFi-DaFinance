@@ -8,6 +8,7 @@ import App from './App.tsx'
 import { AccountGate } from './components/AccountGate'
 import { I18nProvider } from './locales'
 import { SettingsProvider } from './lib/settings'
+import './lib/install' // catch the install prompt before Settings is opened
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
