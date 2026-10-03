@@ -1,5 +1,6 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { createPortal } from 'react-dom'
+import { LOCALES, type Locale } from '@tada/kit/i18n'
 import { ICON_GROUPS, type IconGroup } from '../config/categories'
 import { cn } from '../lib/cn'
 import { useFormat } from '../lib/format'
@@ -8,13 +9,21 @@ import type { TxType } from '../lib/types'
 import { useI18n } from '../locales'
 import { Button } from './ui'
 
-/** Gear button for the header; opens the settings drawer. */
-export function SettingsButton() {
+/**
+ * Opens the settings drawer: from the account menu's Settings item ("tdz-account:settings"),
+ * or, with `button` (standalone, no account menu), from a gear button in the header.
+ */
+export function SettingsLauncher({ button }: { button?: boolean }) {
   const { t } = useI18n()
   const [open, setOpen] = useState(false)
+  useEffect(() => {
+    const onOpen = () => setOpen(true)
+    window.addEventListener('tdz-account:settings', onOpen)
+    return () => window.removeEventListener('tdz-account:settings', onOpen)
+  }, [])
   return (
     <>
-      <button
+      {button && <button
         type="button"
         aria-label={t('settings.open')}
         title={t('settings.open')}
@@ -25,21 +34,22 @@ export function SettingsButton() {
           <circle cx="12" cy="12" r="3" />
           <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" />
         </svg>
-      </button>
+      </button>}
       {open && <SettingsPanel onClose={() => setOpen(false)} />}
     </>
   )
 }
 
 function SettingsPanel({ onClose }: { onClose: () => void }) {
-  const { t } = useI18n()
+  const { t, locale, setLocale } = useI18n()
   const { settings, update } = useSettings()
   const { formatVnd } = useFormat()
   const cats = useCategories()
   const [type, setType] = useState<TxType>('expense')
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    // Escape in a field (e.g. while renaming) cancels the edit, not the whole drawer.
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !(e.target instanceof HTMLInputElement) && onClose()
     document.addEventListener('keydown', onKey)
     const overflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -68,6 +78,27 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
 
         <div className="grid flex-1 content-start gap-7 overflow-y-auto px-5 py-5 [scrollbar-width:thin]">
           <section className="grid gap-3">
+            <h3 className="font-mono text-[11px] tracking-wider text-subtle uppercase">{t('lang.label')}</h3>
+            <div role="radiogroup" aria-label={t('lang.label')} className="grid grid-cols-2 gap-2">
+              {(Object.keys(LOCALES) as Locale[]).map((l) => (
+                <button
+                  key={l}
+                  type="button"
+                  role="radio"
+                  aria-checked={locale === l}
+                  onClick={() => setLocale(l)}
+                  className={cn('flex items-center gap-3 rounded-xl border p-3 text-left text-sm transition-colors', locale === l ? 'border-accent bg-accent/10' : 'border-border hover:border-border-strong')}
+                >
+                  <span aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-lg border border-border bg-surface-2 font-mono text-xs font-semibold">
+                    {LOCALES[l].code}
+                  </span>
+                  {LOCALES[l].label}
+                </button>
+              ))}
+            </div>
+          </section>
+
+          <section className="grid gap-3">
             <h3 className="font-mono text-[11px] tracking-wider text-subtle uppercase">{t('settings.appearance')}</h3>
             <div role="radiogroup" aria-label={t('settings.appearance')} className="grid grid-cols-2 gap-2">
               {(['dark', 'light'] as const).map((th) => (
@@ -89,10 +120,8 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
           </section>
 
           <section className="grid gap-3">
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h3 className="font-mono text-[11px] tracking-wider text-subtle uppercase">{t('settings.categories')}</h3>
-              {totalBudget > 0 && <span className="font-mono text-xs text-muted">{t('settings.budgetTotal', { amount: formatVnd(totalBudget) })}</span>}
-            </div>
+            <h3 className="font-mono text-[11px] tracking-wider text-subtle uppercase">{t('settings.categories')}</h3>
+            <div className="flex flex-wrap items-center justify-between gap-2">
             <div role="radiogroup" className="flex w-fit rounded-lg border border-border bg-surface-2 p-0.5">
               {(['expense', 'income'] as const).map((k) => (
                 <button
@@ -107,8 +136,16 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
                 </button>
               ))}
             </div>
-            {type === 'expense' && <p className="text-xs text-subtle">{t('settings.budgetHint')}</p>}
-            <ul className="grid gap-1.5">
+              {type === 'expense' && totalBudget > 0 && <span className="font-mono text-xs text-muted">{t('settings.budgetTotal', { amount: formatVnd(totalBudget) })}</span>}
+            </div>
+            <p className="text-xs text-subtle">{t(type === 'expense' ? 'settings.budgetHint' : 'settings.renameHint')}</p>
+            {type === 'expense' && (
+              <div className="-mb-1.5 flex justify-between px-2 font-mono text-[10px] tracking-wider text-subtle uppercase">
+                <span>{t('form.category')}</span>
+                <span className="mr-9 w-28 text-right">{t('settings.budget')}</span>
+              </div>
+            )}
+            <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border">
               {cats[type].map((key) => (
                 <CategoryRow key={key} catKey={key} type={type} />
               ))}
@@ -128,14 +165,26 @@ function CategoryRow({ catKey, type }: { catKey: string; type: TxType }) {
   const { update } = useSettings()
   const { categoryName, formatShortVnd } = useFormat()
   const cats = useCategories()
-  const [picking, setPicking] = useState(false)
-  const isCustom = cats.customName(catKey) !== undefined
+  const [renaming, setRenaming] = useState(false)
+  const isCustom = cats.isCustom(catKey)
   const name = categoryName(catKey)
   const budget = cats.budgetOf(catKey)
 
   const setIcon = (icon: string) => {
     update((s) => (isCustom ? { ...s, custom: s.custom.map((c) => (c.key === catKey ? { ...c, icon } : c)) } : { ...s, icons: { ...s.icons, [catKey]: icon } }))
-    setPicking(false)
+  }
+  /** Saves a new name; an empty name puts a built-in category back to its translated name. */
+  const rename = (raw: string) => {
+    setRenaming(false)
+    const next = raw.trim()
+    if (next === name) return
+    update((s) => {
+      if (isCustom) return next ? { ...s, custom: s.custom.map((c) => (c.key === catKey ? { ...c, name: next } : c)) } : s
+      const names = { ...s.names }
+      if (next) names[catKey] = next
+      else delete names[catKey]
+      return { ...s, names }
+    })
   }
   const setBudget = (raw: string) => {
     const n = Math.max(0, Math.round(Number(raw) || 0))
@@ -155,20 +204,50 @@ function CategoryRow({ catKey, type }: { catKey: string; type: TxType }) {
     })
 
   return (
-    <li className="rounded-lg border border-border bg-surface-2/40">
-      <div className="flex items-center gap-2.5 p-2">
-        <button type="button" aria-expanded={picking} aria-label={t('settings.pickIcon', { name })} onClick={() => setPicking((v) => !v)} className={cn('grid size-9 shrink-0 place-items-center rounded-lg border text-lg transition-colors', picking ? 'border-accent bg-accent/10' : 'border-border bg-surface hover:border-border-strong')}>
-          {cats.iconOf(catKey)}
-        </button>
-        <span className="min-w-0 flex-1 truncate text-sm">
-          {name}
-          {isCustom && <span className="ml-1.5 rounded-full border border-border-strong px-1.5 py-px text-[10px] text-subtle">{t('settings.custom')}</span>}
-        </span>
+    <li className="group">
+      <div className="flex items-center gap-2.5 py-1.5 pr-1.5 pl-2">
+        <IconPicker value={cats.iconOf(catKey)} label={t('settings.pickIcon', { name })} onPick={setIcon} />
+        {renaming ? (
+          <input
+            autoFocus
+            className="field min-w-0 flex-1 px-2 py-1 text-sm"
+            maxLength={40}
+            defaultValue={name}
+            aria-label={t('settings.rename', { name })}
+            onFocus={(e) => e.currentTarget.select()}
+            onBlur={(e) => rename(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') e.currentTarget.blur()
+              if (e.key === 'Escape') {
+                e.stopPropagation()
+                e.currentTarget.value = name
+                e.currentTarget.blur()
+              }
+            }}
+          />
+        ) : (
+          <span onDoubleClick={() => setRenaming(true)} title={t('settings.renameHint')} className="flex min-w-0 flex-1 cursor-text items-center gap-1.5 rounded px-1 py-1 text-sm select-none hover:bg-surface-2">
+            <span className="truncate">{name}</span>
+            {isCustom && <span className="shrink-0 rounded-full bg-accent/10 px-1.5 py-px text-[10px] text-accent">{t('settings.custom')}</span>}
+            <button
+              type="button"
+              onClick={() => setRenaming(true)}
+              aria-label={t('settings.rename', { name })}
+              title={t('settings.rename', { name })}
+              className="ml-auto grid size-6 shrink-0 place-items-center rounded text-subtle opacity-0 transition group-hover:opacity-100 hover:text-fg focus-visible:opacity-100 [@media(pointer:coarse)]:opacity-100"
+            >
+              <svg viewBox="0 0 24 24" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+              </svg>
+            </button>
+          </span>
+        )}
         {type === 'expense' && (
-          <label className="relative w-32 shrink-0">
+          <label className="relative w-28 shrink-0">
             <span className="sr-only">{t('settings.budget')}</span>
             <input
-              className="field py-1.5 pr-10 text-right font-mono text-xs"
+              className="w-full rounded-md border border-transparent bg-surface-2/70 py-1 pr-9 pl-2 text-right font-mono text-xs text-fg placeholder:text-subtle hover:border-border focus:border-border-strong focus:outline-none max-sm:text-base"
               type="number"
               inputMode="numeric"
               min={0}
@@ -179,14 +258,19 @@ function CategoryRow({ catKey, type }: { catKey: string; type: TxType }) {
               onBlur={(e) => setBudget(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
             />
-            <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center font-mono text-[10px] text-subtle">{budget > 0 ? formatShortVnd(budget) : '₫'}</span>
+            <span className={cn('pointer-events-none absolute inset-y-0 right-2 flex items-center font-mono text-[10px]', budget > 0 ? 'text-accent' : 'text-subtle')}>{budget > 0 ? formatShortVnd(budget) : '₫'}</span>
           </label>
         )}
-        <button type="button" onClick={remove} aria-label={t('settings.delete', { name })} title={t(isCustom ? 'settings.deleteHint' : 'settings.hideHint')} className="grid size-8 shrink-0 place-items-center rounded-lg text-subtle hover:bg-expense/10 hover:text-expense">
+        <button
+          type="button"
+          onClick={remove}
+          aria-label={t('settings.delete', { name })}
+          title={t(isCustom ? 'settings.deleteHint' : 'settings.hideHint')}
+          className="grid size-7 shrink-0 place-items-center rounded-md text-xs text-subtle opacity-0 transition group-hover:opacity-100 hover:bg-expense/10 hover:text-expense focus-visible:opacity-100 [@media(pointer:coarse)]:opacity-100"
+        >
           ✕
         </button>
       </div>
-      {picking && <IconGrid value={cats.iconOf(catKey)} onPick={setIcon} />}
     </li>
   )
 }
@@ -221,35 +305,116 @@ function Removed({ type }: { type: TxType }) {
   )
 }
 
-/** Icon picker: every group of ICON_GROUPS, with chips to jump between groups. */
-function IconGrid({ value, onPick }: { value: string; onPick: (icon: string) => void }) {
+/**
+ * Icon button that opens the icon picker in a floating bubble (portal, fixed to the viewport) next to
+ * it, so the list layout does not move. Follows the button when the drawer scrolls; closes on pick,
+ * outside click, Escape, resize, or when the button scrolls out of view.
+ */
+function IconPicker({ value, label, onPick, className }: { value: string; label: string; onPick: (icon: string) => void; className?: string }) {
   const { t } = useI18n()
+  const [open, setOpen] = useState(false)
   const [group, setGroup] = useState<IconGroup>('food')
+  const [pos, setPos] = useState({ top: 0, left: 0, width: 320 })
+  const anchor = useRef<HTMLButtonElement>(null)
+  const bubble = useRef<HTMLDivElement>(null)
+
+  /** Places the bubble under the button (above when there is no room), inside the viewport. False when the button is off screen. */
+  const place = () => {
+    if (!anchor.current) return false
+    const r = anchor.current.getBoundingClientRect()
+    if (r.bottom < 0 || r.top > window.innerHeight) return false
+    const width = Math.min(340, window.innerWidth - 16)
+    const height = bubble.current?.offsetHeight ?? 260
+    const top = window.innerHeight - r.bottom < height + 12 ? Math.max(8, r.top - height - 6) : r.bottom + 6
+    setPos({ top, left: Math.min(Math.max(8, r.left), window.innerWidth - width - 8), width })
+    return true
+  }
+
+  useEffect(() => {
+    if (!open) return
+    const inside = (e: Event) => e.target instanceof Node && (bubble.current?.contains(e.target) || anchor.current?.contains(e.target))
+    const onDown = (e: PointerEvent) => !inside(e) && setOpen(false)
+    // Capture phase on window, so Escape closes only the bubble and not the settings drawer behind it.
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      e.stopPropagation()
+      setOpen(false)
+      anchor.current?.focus()
+    }
+    const onScroll = (e: Event) => {
+      if (e.target instanceof Node && bubble.current?.contains(e.target)) return
+      if (!place()) setOpen(false)
+    }
+    const onResize = () => setOpen(false)
+    document.addEventListener('pointerdown', onDown)
+    window.addEventListener('keydown', onKey, true)
+    window.addEventListener('scroll', onScroll, true)
+    window.addEventListener('resize', onResize)
+    return () => {
+      document.removeEventListener('pointerdown', onDown)
+      window.removeEventListener('keydown', onKey, true)
+      window.removeEventListener('scroll', onScroll, true)
+      window.removeEventListener('resize', onResize)
+    }
+    // place() only reads refs and sets state.
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
+
+  const toggle = () => {
+    if (!open) place()
+    setOpen((o) => !o)
+  }
+
   return (
-    <div className="grid gap-2 border-t border-border p-2">
-      <div role="tablist" className="-mx-2 flex gap-1 overflow-x-auto px-2 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {(Object.keys(ICON_GROUPS) as IconGroup[]).map((g) => (
-          <button
-            key={g}
-            type="button"
-            role="tab"
-            aria-selected={group === g}
-            onClick={() => setGroup(g)}
-            className={cn('flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-xs whitespace-nowrap transition-colors', group === g ? 'border-accent/60 bg-accent/10 text-fg' : 'border-border text-muted hover:text-fg')}
-          >
-            <span aria-hidden="true">{ICON_GROUPS[g][0]}</span>
-            {t(`icons.${g}`)}
-          </button>
-        ))}
-      </div>
-      <div className="grid grid-cols-8 gap-1 sm:grid-cols-10">
-        {ICON_GROUPS[group].map((icon) => (
-          <button key={icon} type="button" onClick={() => onPick(icon)} className={cn('grid aspect-square place-items-center rounded-md text-xl transition-colors hover:bg-surface', icon === value && 'bg-accent/15 ring-1 ring-accent/50')}>
-            {icon}
-          </button>
-        ))}
-      </div>
-    </div>
+    <>
+      <button
+        ref={anchor}
+        type="button"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-label={label}
+        onClick={toggle}
+        className={cn('grid size-8 shrink-0 place-items-center rounded-lg text-base transition-colors', open ? 'bg-accent/15 ring-1 ring-accent/50' : 'bg-surface-2 hover:bg-border', className)}
+      >
+        {value}
+      </button>
+      {open &&
+        createPortal(
+          <div ref={bubble} role="dialog" aria-label={label} style={pos} className="fixed z-[60] grid gap-2 rounded-xl border border-border-strong bg-surface p-2 shadow-xl shadow-black/30">
+            <div role="tablist" className="-mx-2 flex gap-1 overflow-x-auto px-2 pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {(Object.keys(ICON_GROUPS) as IconGroup[]).map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  role="tab"
+                  aria-selected={group === g}
+                  onClick={() => setGroup(g)}
+                  className={cn('flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-xs whitespace-nowrap transition-colors', group === g ? 'border-accent/60 bg-accent/10 text-fg' : 'border-border text-muted hover:text-fg')}
+                >
+                  <span aria-hidden="true">{ICON_GROUPS[g][0]}</span>
+                  {t(`icons.${g}`)}
+                </button>
+              ))}
+            </div>
+            <div className="grid max-h-52 grid-cols-8 gap-0.5 overflow-y-auto [scrollbar-width:thin]">
+              {ICON_GROUPS[group].map((icon) => (
+                <button
+                  key={icon}
+                  type="button"
+                  onClick={() => {
+                    onPick(icon)
+                    setOpen(false)
+                  }}
+                  className={cn('grid aspect-square place-items-center rounded-md text-xl transition-colors hover:bg-surface-2', icon === value && 'bg-accent/15 ring-1 ring-accent/50')}
+                >
+                  {icon}
+                </button>
+              ))}
+            </div>
+          </div>,
+          document.body,
+        )}
+    </>
   )
 }
 
@@ -258,7 +423,6 @@ function AddCategory({ type }: { type: TxType }) {
   const { update } = useSettings()
   const [name, setName] = useState('')
   const [icon, setIcon] = useState('📦')
-  const [picking, setPicking] = useState(false)
 
   const submit = (e: FormEvent) => {
     e.preventDefault()
@@ -266,29 +430,17 @@ function AddCategory({ type }: { type: TxType }) {
     if (!trimmed) return
     update((s) => ({ ...s, custom: [...s.custom, { key: `c-${crypto.randomUUID().slice(0, 8)}`, type, name: trimmed, icon }] }))
     setName('')
-    setPicking(false)
   }
 
   return (
     <form onSubmit={submit} className="rounded-lg border border-dashed border-border-strong">
       <div className="flex items-center gap-2.5 p-2">
-        <button type="button" aria-expanded={picking} aria-label={t('settings.pickIcon', { name: name || t('settings.newName') })} onClick={() => setPicking((v) => !v)} className="grid size-9 shrink-0 place-items-center rounded-lg border border-border bg-surface text-lg hover:border-border-strong">
-          {icon}
-        </button>
+        <IconPicker value={icon} label={t('settings.pickIcon', { name: name || t('settings.newName') })} onPick={setIcon} className="size-9 text-lg" />
         <input className="field min-w-0 flex-1 py-1.5" maxLength={40} placeholder={t('settings.newName')} aria-label={t('settings.newName')} value={name} onChange={(e) => setName(e.target.value)} />
         <Button type="submit" variant="primary" className="shrink-0 px-3 py-1.5" disabled={!name.trim()}>
           + {t('settings.add')}
         </Button>
       </div>
-      {picking && (
-        <IconGrid
-          value={icon}
-          onPick={(i) => {
-            setIcon(i)
-            setPicking(false)
-          }}
-        />
-      )}
     </form>
   )
 }

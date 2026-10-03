@@ -15,7 +15,7 @@ import { TxForm } from './components/TxForm'
 import { TxList } from './components/TxList'
 import { Button, HeroTile, StatTile } from './components/ui'
 import { StorageNotice } from './components/StorageNotice'
-import { SettingsButton } from './components/Settings'
+import { SettingsLauncher } from './components/Settings'
 import { API_ACCOUNT_URL, API_ME_URL, type ApiError, STANDALONE, toApiError } from './lib/api'
 import { cn } from './lib/cn'
 import { usePeriodLabel } from './lib/usePeriodLabel'
@@ -24,7 +24,7 @@ import { valueOf } from './lib/holdings'
 import { isSpending, isTransfer } from './lib/transfers'
 import { inPeriod, isAssignedAway, rangeOf, type Unit } from './lib/range'
 import { useAllTransactions, useHoldings, useLegacyImport, useStore } from './lib/storage'
-import { LanguageSwitch, useI18n } from './locales'
+import { useI18n } from './locales'
 import type { Holding, Transaction } from './lib/types'
 
 /** Hub to go back to; no link when unset (standalone clones). */
@@ -188,9 +188,8 @@ export default function App() {
           <div className="order-2 ml-auto flex min-w-0 flex-1 items-center justify-end gap-2 sm:gap-3 lg:order-3 lg:flex-none lg:py-2 xl:justify-self-end">
             {(view === 'month' || view === 'entry') && <PeriodBar className="min-w-0 flex-1 justify-center lg:flex-none" unit={unit} anchor={anchor} onChange={setPeriod} marked={markedDates} />}
             <div className="flex shrink-0 items-center gap-2 max-sm:[&_summary>span:last-of-type]:hidden max-sm:[&_summary>svg]:hidden sm:gap-3">
-              <LanguageSwitch label={t('lang.label')} />
-              <SettingsButton />
-              {!STANDALONE && <tdz-account key={locale} lang={locale} me-url={API_ME_URL} account-url={API_ACCOUNT_URL} />}
+              <SettingsLauncher button={STANDALONE} />
+              {!STANDALONE && <tdz-account key={locale} lang={locale} me-url={API_ME_URL} account-url={API_ACCOUNT_URL} settings />}
             </div>
           </div>
         </div>

@@ -63,7 +63,7 @@ src/
 │   ├── TxList.tsx       # Search, list grouped by day, edit/delete, CSV export
 │   ├── AccountGate.tsx  # Standalone store, or reads the account and provides the store (server / browser)
 │   ├── StorageNotice.tsx# Browser-only banner + storage request; move browser data up after approval
-│   └── Settings.tsx     # Gear button + drawer: theme, user categories + icons, monthly budget per expense category
+│   └── Settings.tsx     # Drawer opened from the account menu (gear button in standalone): language, theme, user categories + icons, monthly budget per expense category
 ├── config/categories.ts # Income / expense category keys (+ legacy Vietnamese name map)
 ├── locales/             # en.ts, vi.ts dictionaries + the app's i18n instance (@tada/kit/i18n)
 └── lib/                 # types, api client, account, storage (FinanceStore, hooks, legacy import), settings, format, csv, cn

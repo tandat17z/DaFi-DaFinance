@@ -15,6 +15,7 @@ export type Theme = 'dark' | 'light'
 /**
  * Per-browser preferences (not synced: the API has no settings endpoint yet).
  * `budgets`: monthly spending limit in VND per expense category key.
+ * `names`: names the user gave to built-in categories (shown as typed).
  * `hidden`: built-in categories the user removed, as `<type>:<key>` (`other` exists for both types);
  * left out of pickers, existing entries keep them.
  */
@@ -24,10 +25,11 @@ export interface Settings {
   icons: Record<string, string>
   budgets: Record<string, number>
   hidden: string[]
+  names: Record<string, string>
 }
 
 const KEY = 'dafinance.settings'
-const DEFAULTS: Settings = { theme: 'dark', custom: [], icons: {}, budgets: {}, hidden: [] }
+const DEFAULTS: Settings = { theme: 'dark', custom: [], icons: {}, budgets: {}, hidden: [], names: {} }
 
 function read(): Settings {
   try {
@@ -77,7 +79,9 @@ export function useCategories() {
         const key = categoryKey(raw)
         return settings.icons[key] ?? byKey.get(key)?.icon ?? DEFAULT_ICONS[key] ?? '•'
       },
-      customName: (raw: string) => byKey.get(categoryKey(raw))?.name,
+      /** Name typed by the user (their category, or a renamed built-in one); undefined = translated name. */
+      customName: (raw: string) => settings.names[categoryKey(raw)] ?? byKey.get(categoryKey(raw))?.name,
+      isCustom: (raw: string) => byKey.has(categoryKey(raw)),
       budgetOf: (raw: string) => settings.budgets[categoryKey(raw)] ?? 0,
     }
   }, [settings])
