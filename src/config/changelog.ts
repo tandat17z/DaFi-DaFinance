@@ -7,7 +7,7 @@ export const changelog: ChangelogEntry[] = [
     date: '2026-10-04',
     changes: [
       { kind: 'added', text: { en: 'Rate the app and send a message or a request from the account menu; the author is told right away', vi: 'Đánh giá ứng dụng và gửi lời nhắn hoặc yêu cầu ngay từ menu tài khoản; tác giả nhận được ngay' } },
-      { kind: 'added', text: { en: 'A request can name another email to sync with, and asks for server storage while your data is in the browser', vi: 'Yêu cầu có thể ghi email muốn đồng bộ, và tự xin lưu trên server khi dữ liệu còn ở trình duyệt' } },
+      { kind: 'added', text: { en: 'Requests, always available with a short note: they ask for server storage while your data is in the browser, and can name another email to sync with; asking again updates the request', vi: 'Gửi yêu cầu (luôn có, cần ghi vài dòng): tự xin lưu trên server khi dữ liệu còn ở trình duyệt, có thể ghi email muốn đồng bộ; gửi lại sẽ cập nhật yêu cầu' } },
       { kind: 'added', text: { en: '"About the author" link in the account menu', vi: 'Link "Về tác giả" trong menu tài khoản' } },
       { kind: 'changed', text: { en: '"Ask for server storage" opens the request form in the account menu', vi: '"Yêu cầu lưu trên server" mở form yêu cầu trong menu tài khoản' } },
     ],

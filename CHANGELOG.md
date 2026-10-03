@@ -8,8 +8,9 @@ All notable changes to DaFinance. Newest first. The in-app version dialog reads 
 ### Added
 - Rate the app and send feedback from the account menu: stars (5 by default), a message or a
   request, with a thank-you popup. The owner is told on Telegram.
-- A request can carry an email to sync with (an account link) and, when your data is still in the
-  browser, the request for server storage.
+- Requests from the account menu, always available: a short note is required; while your data is
+  still in the browser each request also asks for server storage, and an optional email to sync
+  with links your accounts. Asking again updates a pending request, with no waiting time.
 - "About the author" link in the account menu.
 
 ### Changed
