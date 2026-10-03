@@ -59,7 +59,7 @@
     }
   };
 
-  // Colors follow each site's CSS variables when present (hub/DaFinance/web names, then DaTra's
+  // Colors follow each site's CSS variables when present (hub/DaFinance/web names, then DaTraaa's
   // --ink/--border), with the shared dark palette as the last fallback.
   const CSS = `
     :host { position: relative; display: inline-flex; font: 500 13px/1.4 var(--font-sans, var(--sans, ui-sans-serif, system-ui, sans-serif)); color: var(--fg, var(--ink, #e7e9ec)); }

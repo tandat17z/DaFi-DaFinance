@@ -160,7 +160,7 @@ export default function App() {
             )}
             <AppBrand
               name="DaFinance"
-              logo={<span className="grid h-6 place-items-center rounded-md bg-accent/15 px-1.5 font-mono text-xs font-semibold text-accent">DaFi</span>}
+              logo={<span className="grid h-6 place-items-center rounded-md bg-accent/15 px-1.5 font-mono text-xs font-semibold text-accent">DaFiii</span>}
               changelog={changelog}
               nameClassName="hidden sm:inline lg:hidden 2xl:inline"
               locale={locale}
