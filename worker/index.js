@@ -5,10 +5,25 @@
 // app and its API calls (no second login, no cross-origin cookies). The API still verifies
 // the Access JWT itself — this proxy adds no identity, it only forwards what Access attached.
 
+// CSRF: a page on another site can send a simple POST that carries this host's Access cookie, and
+// Access then attaches a valid JWT. Browsers mark where a request comes from, so writes are only
+// forwarded when they come from this origin (clients without these headers are not browsers).
+/** @param {Request} request @param {URL} url */
+function crossSiteWrite(request, url) {
+  if (request.method === "GET" || request.method === "HEAD" || request.method === "OPTIONS") return false;
+  const site = request.headers.get("Sec-Fetch-Site");
+  if (site) return site !== "same-origin";
+  const origin = request.headers.get("Origin");
+  return origin !== null && origin !== url.origin;
+}
+
 /** @param {Request} request @param {{ API: Fetcher, ASSETS: Fetcher, API_PUBLIC_URL?: string }} env */
 async function handle(request, env) {
   const url = new URL(request.url);
   if (url.pathname !== "/api" && !url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
+  if (crossSiteWrite(request, url)) {
+    return Response.json({ error: { code: "forbidden", message: "Cross-site request" } }, { status: 403 });
+  }
 
   // Least privilege: once this app is shared, strangers hold a valid Access JWT for this host, so
   // only forward what the app itself calls (the API still checks every request on its own).
