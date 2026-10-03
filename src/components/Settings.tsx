@@ -8,6 +8,7 @@ import { useInstall } from '../lib/install'
 import { useCategories, useSettings, type Theme } from '../lib/settings'
 import type { TxType } from '../lib/types'
 import { useI18n } from '../locales'
+import { LinkSection } from './LinkSection'
 import { Button } from './ui'
 
 /**
@@ -99,6 +100,8 @@ function SettingsPanel({ onClose }: { onClose: () => void }) {
               ))}
             </div>
           </section>
+
+          <LinkSection />
 
           <section className="grid gap-3">
             <h3 className="font-mono text-[11px] tracking-wider text-subtle uppercase">{t('install.title')}</h3>
