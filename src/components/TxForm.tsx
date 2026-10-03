@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { categoryKey, UNCATEGORIZED } from '../config/categories'
 import { useCategories } from '../lib/settings'
+import { evaluate } from '../lib/calc'
 import { cn } from '../lib/cn'
 import { todayIso, useFormat } from '../lib/format'
 import { useI18n } from '../locales'
@@ -18,18 +19,48 @@ type Draft = { type: TxType; amount: string; category: string; date: string; not
 const empty = (first: string): Draft => ({ type: 'expense', amount: '', category: first, date: todayIso(), note: '', forMonth: '', time: '' })
 const fromTx = (t: Transaction): Draft => ({ ...t, category: categoryKey(t.category), amount: String(t.amount), forMonth: t.forMonth ?? '', time: t.time ?? '' })
 
+/** Amount in VND from the field: a plain number, or (quick-math mode) an expression in thousands. */
+function amountOf(raw: string, calc: boolean) {
+  const v = calc ? evaluate(raw) : Number(raw)
+  return v === null || !Number.isFinite(v) ? 0 : Math.max(0, Math.round(calc ? v * 1000 : v))
+}
+
+const CALC_KEY = 'dafinance.calcMode'
+const readCalc = () => {
+  try {
+    return localStorage.getItem(CALC_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
 /** Add/edit form. Remount with a new `key` to load a different transaction. */
 export function TxForm({ editing, onSave, onCancel }: { editing: Transaction | null; onSave: (tx: Transaction) => Promise<boolean>; onCancel: () => void }) {
   const { t } = useI18n()
-  const { formatShortVnd, categoryName } = useFormat()
+  const { formatShortVnd, formatVnd, categoryName } = useFormat()
   const cats = useCategories()
   const [d, setD] = useState<Draft>(() => (editing ? fromTx(editing) : empty(cats.expense[0] ?? UNCATEGORIZED)))
   const [saving, setSaving] = useState(false)
   const set = (patch: Partial<Draft>) => setD((prev) => ({ ...prev, ...patch }))
+  // Quick-math mode: the amount field takes an expression in thousands ("149 + 480" → 629.000 ₫).
+  const [calc, setCalc] = useState(readCalc)
+  const toggleCalc = () => {
+    const next = !calc
+    setCalc(next)
+    // Keep the same amount when switching: VND ↔ thousands.
+    const current = amountOf(d.amount, calc)
+    set({ amount: current > 0 ? String(next ? current / 1000 : current) : '' })
+    try {
+      localStorage.setItem(CALC_KEY, next ? '1' : '0')
+    } catch {
+      // Not remembered; applies for this visit.
+    }
+  }
+  const value = amountOf(d.amount, calc)
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
-    const amount = Math.round(Number(d.amount))
+    const amount = value
     if (!amount || amount <= 0 || saving) return
     setSaving(true)
     const ok = await onSave({ id: editing?.id ?? crypto.randomUUID(), type: d.type, amount, category: d.category, date: d.date, time: d.time || null, note: d.note.trim(), forMonth: d.forMonth || null })
@@ -62,23 +93,46 @@ export function TxForm({ editing, onSave, onCancel }: { editing: Transaction | n
           ))}
         </div>
 
-        <Label text={t('form.amount')}>
+        <div className="grid gap-1.5">
+          <div className="flex items-center justify-between gap-2 text-xs text-muted">
+            <label htmlFor="tx-amount">{t('form.amount')}</label>
+            <label className="flex cursor-pointer items-center gap-1.5" title={t('form.calcHint')}>
+              <input type="checkbox" role="switch" checked={calc} onChange={toggleCalc} className="size-3.5 accent-[var(--accent)]" />
+              {t('form.calc')}
+            </label>
+          </div>
           <div className="relative">
-            <input className="field pr-28 font-mono text-lg" type="number" inputMode="numeric" min={1} step={1} required value={d.amount} onChange={(e) => set({ amount: e.target.value })} placeholder="0" />
-            <span className={cn('pointer-events-none absolute inset-y-0 right-3 flex items-center font-mono text-xs', d.type === 'income' ? 'text-income' : 'text-expense')} aria-live="polite">
-              {Number(d.amount) > 0 ? formatShortVnd(Math.round(Number(d.amount))) : ''}
+            {calc ? (
+              <input
+                id="tx-amount"
+                className="field pr-32 font-mono text-lg"
+                type="text"
+                inputMode="text"
+                autoComplete="off"
+                required
+                value={d.amount}
+                onChange={(e) => set({ amount: e.target.value.replace(/[^\d+\-*/xX×÷().,\s]/g, '') })}
+                placeholder="149 + 480"
+                aria-describedby="tx-amount-result"
+              />
+            ) : (
+              <input id="tx-amount" className="field pr-28 font-mono text-lg" type="number" inputMode="numeric" min={1} step={1} required value={d.amount} onChange={(e) => set({ amount: e.target.value })} placeholder="0" />
+            )}
+            <span id="tx-amount-result" className={cn('pointer-events-none absolute inset-y-0 right-3 flex items-center font-mono text-xs', d.type === 'income' ? 'text-income' : 'text-expense')} aria-live="polite">
+              {calc ? (d.amount.trim() ? (value > 0 ? `= ${formatShortVnd(value)}` : '?') : '× 1.000') : value > 0 ? formatShortVnd(value) : ''}
             </span>
           </div>
-        </Label>
+          {calc && value > 0 && /[+\-*/xX×÷]/.test(d.amount.trim().replace(/^[-+]/, '')) && <span className="text-right font-mono text-xs text-subtle tabular-nums">= {formatVnd(value)}</span>}
+        </div>
         <div className="-mx-4 -mt-1 flex gap-1.5 overflow-x-auto px-4 pb-0.5 [scrollbar-width:none] sm:-mx-5 sm:px-5 [&::-webkit-scrollbar]:hidden" aria-label={t('form.quick')}>
           {QUICK[d.type].map((n) => (
             <button
               key={n}
               type="button"
-              onClick={() => set({ amount: String(n) })}
+              onClick={() => set({ amount: String(calc ? n / 1000 : n) })}
               className={cn(
                 'shrink-0 rounded-md border px-2.5 py-1 font-mono text-xs transition-colors',
-                Number(d.amount) === n ? 'border-accent/50 bg-accent/10 text-accent' : 'border-border text-muted hover:border-border-strong hover:text-fg',
+                value === n ? 'border-accent/50 bg-accent/10 text-accent' : 'border-border text-muted hover:border-border-strong hover:text-fg',
               )}
             >
               {formatShortVnd(n)}
