@@ -3,6 +3,13 @@ import type { ChangelogEntry } from '@tada/kit/brand'
 /** Newest first. The first entry is the version shown in the header: add a new one on every release. */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.3.0',
+    date: '2026-10-04',
+    changes: [
+      { kind: 'added', text: { en: 'Switch language right from the account menu, without reloading', vi: 'Đổi ngôn ngữ ngay trong menu tài khoản, không cần tải lại trang' } },
+    ],
+  },
+  {
     version: '1.2.0',
     date: '2026-10-04',
     changes: [

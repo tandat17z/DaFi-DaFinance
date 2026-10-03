@@ -3,6 +3,15 @@
 All notable changes to DaFinance. Newest first. The in-app version dialog reads the same list from
 `src/config/changelog.ts` (English and Vietnamese) — update both on every release.
 
+## 1.3.0 — 2026-10-04
+
+### Added
+- Switch language right from the account menu (EN / VI), without reloading the page. Settings
+  keeps its language picker too.
+
+### Changed
+- `@tada/kit` v0.2.0.
+
 ## 1.2.0 — 2026-10-04
 
 ### Added

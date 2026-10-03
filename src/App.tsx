@@ -26,6 +26,7 @@ import { valueOf } from './lib/holdings'
 import { isSpending, isTransfer } from './lib/transfers'
 import { inPeriod, isAssignedAway, rangeOf, type Unit } from './lib/range'
 import { useAllTransactions, useHoldings, useLegacyImport, useStore } from './lib/storage'
+import { LOCALES, type Locale } from '@tada/kit/i18n'
 import { useI18n } from './locales'
 import type { Holding, Transaction } from './lib/types'
 
@@ -39,7 +40,18 @@ function linkedTransactionId(): string | null {
 }
 
 export default function App() {
-  const { t, locale } = useI18n()
+  const { t, locale, setLocale } = useI18n()
+  // Language picked in the account menu: switch in place instead of following a link.
+  useEffect(() => {
+    const onLanguage = (e: Event) => {
+      const code = (e as CustomEvent<{ code: string }>).detail.code
+      if (!(code in LOCALES)) return
+      e.preventDefault()
+      setLocale(code as Locale)
+    }
+    window.addEventListener('tdz-account:language', onLanguage)
+    return () => window.removeEventListener('tdz-account:language', onLanguage)
+  }, [setLocale])
   const { formatVnd, categoryName } = useFormat()
   const periodLabel = usePeriodLabel()
   const [period, setPeriod] = useState<{ unit: Unit; anchor: string }>(() => ({ unit: 'month', anchor: todayIso() }))
@@ -193,7 +205,7 @@ export default function App() {
             {(view === 'month' || view === 'entry') && <PeriodBar className="min-w-0 flex-1 justify-center lg:flex-none" unit={unit} anchor={anchor} onChange={setPeriod} marked={markedDates} />}
             <div className="flex shrink-0 items-center gap-2 max-sm:[&_summary>span:last-of-type]:hidden max-sm:[&_summary>svg]:hidden sm:gap-3">
               <SettingsLauncher button={STANDALONE} />
-              {!STANDALONE && <tdz-account key={locale} lang={locale} me-url={API_ME_URL} account-url={API_ACCOUNT_URL} feedback-url={API_FEEDBACK_URL} settings />}
+              {!STANDALONE && <tdz-account key={locale} lang={locale} me-url={API_ME_URL} account-url={API_ACCOUNT_URL} feedback-url={API_FEEDBACK_URL} languages={Object.keys(LOCALES).join(';')} settings />}
             </div>
           </div>
         </div>
