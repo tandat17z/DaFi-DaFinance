@@ -13,7 +13,8 @@ export interface CustomCategory {
 export type Theme = 'dark' | 'light'
 
 /**
- * Per-browser preferences (not synced: the API has no settings endpoint yet).
+ * Preferences: kept in this browser, and synced to the API (`/settings`) when data lives on the server
+ * (components/SettingsSync.tsx).
  * `budgets`: monthly spending limit in VND per expense category key.
  * `names`: names the user gave to built-in categories (shown as typed).
  * `hidden`: built-in categories the user removed, as `<type>:<key>` (`other` exists for both types);
@@ -30,6 +31,9 @@ export interface Settings {
 
 const KEY = 'dafinance.settings'
 const DEFAULTS: Settings = { theme: 'dark', custom: [], icons: {}, budgets: {}, hidden: [], names: {} }
+
+/** A stored settings document with defaults for missing fields. */
+export const withDefaults = (s: Partial<Settings>): Settings => ({ ...DEFAULTS, ...s })
 
 function read(): Settings {
   try {

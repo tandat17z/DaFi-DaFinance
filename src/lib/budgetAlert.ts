@@ -60,7 +60,7 @@ export async function notifyOverBudget(title: string, body: string) {
     if (!('Notification' in window) || Notification.permission !== 'granted') return
     const reg = await navigator.serviceWorker?.getRegistration()
     // renotify: a new alert with the same tag otherwise replaces the old one silently (no pop-up, no buzz).
-    const options = { body, tag: 'budget', renotify: true, vibrate: [200, 100, 200], icon: '/icons/icon-192.png' } as NotificationOptions
+    const options = { body, tag: 'budget', renotify: true, vibrate: [200, 100, 200], icon: '/icons/alert-192.png' } as NotificationOptions
     if (reg) await reg.showNotification(title, options)
     else new Notification(title, options)
   } catch {

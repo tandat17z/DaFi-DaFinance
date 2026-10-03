@@ -69,7 +69,7 @@ src/
 └── lib/                 # types, api client, account, storage (FinanceStore, hooks, legacy import), settings, format, csv, cn
 ```
 
-Settings (`src/lib/settings.tsx`, localStorage `dafinance.settings`, this browser only): theme, user categories
+Settings (`src/lib/settings.tsx`, localStorage `dafinance.settings`; synced to `/v1/finance/settings` by `SettingsSync` when data is on the server, server copy wins on load): theme, user categories
 (`{ key: 'c-…', type, name, icon }`, name shown as typed), icon overrides, `budgets` (VND per month per expense key).
 In a one-month period the category bars show the share of each budget used.
 

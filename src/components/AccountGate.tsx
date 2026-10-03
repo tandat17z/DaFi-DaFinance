@@ -2,6 +2,7 @@ import { AccountGate as KitAccountGate } from '@tada/kit/account'
 import type { ReactNode } from 'react'
 import { fetchAccount } from '../lib/account'
 import { STANDALONE } from '../lib/api'
+import { SettingsSync } from './SettingsSync'
 import { localStore, pullServerToLocal, serverStore, StoreContext } from '../lib/storage'
 
 // Standalone build: no API and no account, one browser store for whoever uses this browser.
@@ -17,7 +18,12 @@ export function AccountGate({ children }: { children: ReactNode }) {
       onReadonly={(account) => pullServerToLocal(account.email)}
       // Stable per (mode, email): a new store object makes the data hooks refetch.
       storeFor={(onServer, email) => (onServer ? serverStore : localStore(email))}
-      provide={(store, subtree) => <StoreContext value={store}>{subtree}</StoreContext>}
+      provide={(store, subtree) => (
+        <StoreContext value={store}>
+          <SettingsSync />
+          {subtree}
+        </StoreContext>
+      )}
     >
       {children}
     </KitAccountGate>
