@@ -3,6 +3,16 @@ import type { ChangelogEntry } from '@tada/kit/brand'
 /** Newest first. The first entry is the version shown in the header: add a new one on every release. */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.2.0',
+    date: '2026-10-04',
+    changes: [
+      { kind: 'added', text: { en: 'Rate the app and send a message or a request from the account menu; the author is told right away', vi: 'Đánh giá ứng dụng và gửi lời nhắn hoặc yêu cầu ngay từ menu tài khoản; tác giả nhận được ngay' } },
+      { kind: 'added', text: { en: 'A request can name another email to sync with, and asks for server storage while your data is in the browser', vi: 'Yêu cầu có thể ghi email muốn đồng bộ, và tự xin lưu trên server khi dữ liệu còn ở trình duyệt' } },
+      { kind: 'added', text: { en: '"About the author" link in the account menu', vi: 'Link "Về tác giả" trong menu tài khoản' } },
+      { kind: 'changed', text: { en: '"Ask for server storage" opens the request form in the account menu', vi: '"Yêu cầu lưu trên server" mở form yêu cầu trong menu tài khoản' } },
+    ],
+  },
+  {
     version: '1.1.0',
     date: '2026-10-03',
     changes: [
