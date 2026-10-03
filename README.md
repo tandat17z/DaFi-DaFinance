@@ -101,7 +101,7 @@ Standalone: upload `dist/` from `npm run build:standalone` to any static host.
 Hosted (Cloudflare Workers, with the API):
 
 ```bash
-npm run build       # VITE_WORKSPACE_URL (optional) from .env.production.local or the build env
+npm run build
 npx wrangler deploy # worker "finance", service binding to a Worker named "api"
 ```
 

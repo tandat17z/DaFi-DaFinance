@@ -30,9 +30,6 @@ import { LOCALES, type Locale } from '@tada/kit/i18n'
 import { useI18n } from './locales'
 import type { Holding, Transaction } from './lib/types'
 
-/** Hub to go back to; no link when unset (standalone clones). */
-const WORKSPACE_URL: string | undefined = import.meta.env.VITE_WORKSPACE_URL || undefined
-
 /** Id from a `/tx/<id>` deep link, or null. */
 function linkedTransactionId(): string | null {
   const m = /^\/tx\/([A-Za-z0-9-]{1,100})\/?$/.exec(window.location.pathname)
@@ -167,14 +164,6 @@ export default function App() {
       <header className="sticky top-0 z-10 border-b border-border bg-bg/85 backdrop-blur">
         <div className="mx-auto flex max-w-screen-2xl flex-wrap items-center gap-x-3 gap-y-0 px-4 pt-1.5 sm:px-6 lg:flex-nowrap lg:gap-x-4 lg:pt-0 xl:grid xl:grid-cols-[1fr_auto_1fr]">
           <div className="order-1 flex shrink-0 items-center gap-2 whitespace-nowrap sm:gap-3 lg:py-2">
-            {WORKSPACE_URL && !STANDALONE && (
-              <>
-                <a href={WORKSPACE_URL} aria-label={t('app.backToWorkspace')} className="font-mono text-xs text-subtle hover:text-fg">
-                  ←<span className="hidden 2xl:inline"> {t('app.workspace')}</span>
-                </a>
-                <span className="hidden h-4 w-px bg-border-strong sm:block" />
-              </>
-            )}
             <AppBrand
               name="DaFinance"
               logo={<span className="grid h-6 place-items-center rounded-md bg-accent/15 px-1.5 font-mono text-xs font-semibold text-accent">DaFiii</span>}

@@ -1,7 +1,6 @@
 // Cloudflare Workers static assets: serves the Vite build in ./dist.
 // Deployed by Cloudflare Workers Builds on every push to master (build `npm run build`, deploy
 // `npx wrangler deploy`); the same commands work by hand. Protect the hostnames with Access.
-// No hosts here (public repo): build-time VITE_WORKSPACE_URL is a Builds variable.
 // /api/* runs worker/index.js, which forwards to the central API Worker (service binding) so the
 // app needs a single Access login. Everything else is served straight from ./dist.
 {

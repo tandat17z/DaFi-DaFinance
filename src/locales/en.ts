@@ -63,8 +63,6 @@ export const en = {
   'layout.resize': 'Resize panels',
   'layout.resizeHint': 'Drag to resize · double-click to reset',
 
-  'app.workspace': 'Workspace',
-  'app.backToWorkspace': 'Back to Workspace',
   'view.entry': 'Add',
   'entry.saved': 'Saved',
   'split.label': 'Resize the two areas',
@@ -304,7 +302,7 @@ export const en = {
 
   'err.login': 'Your session expired or the API is unreachable. Press “Sign in again”, then come back and press “Retry”.',
   'err.forbidden': 'This account does not have access.',
-  'err.disabled': 'DaFinance is turned off in the Workspace.',
+  'err.disabled': 'DaFinance is turned off.',
   'err.generic': 'Something went wrong: {message}',
   'err.relogin': 'Sign in again',
   'err.retry': 'Retry',

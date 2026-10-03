@@ -12,7 +12,6 @@ sibling repos, deploy) is in `CLAUDE.local.md`, which is git-ignored — read it
   companion central API (`/v1/finance`). The API decides per user where data lives: the owner and
   approved users on the server, everyone else in the browser, with a request for server storage.
 
-It can be launched from a Workspace hub (`VITE_WORKSPACE_URL`, header "← Workspace"; hidden when unset).
 The header shows the shared `<tdz-account>` menu (`@tada/kit/account-menu`, imported in `main.tsx`);
 its `account-url` shows where data is stored and sends the storage request.
 

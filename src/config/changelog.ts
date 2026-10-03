@@ -3,6 +3,13 @@ import type { ChangelogEntry } from '@tada/kit/brand'
 /** Newest first. The first entry is the version shown in the header: add a new one on every release. */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '1.3.1',
+    date: '2026-10-04',
+    changes: [
+      { kind: 'changed', text: { en: 'Removed the back-to-Workspace link from the header', vi: 'Bỏ link quay về Workspace trên header' } },
+    ],
+  },
+  {
     version: '1.3.0',
     date: '2026-10-04',
     changes: [

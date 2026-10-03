@@ -64,8 +64,6 @@ export const vi: Record<MessageKey, string> = {
   'layout.resize': 'Đổi kích thước hai khung',
   'layout.resizeHint': 'Kéo để đổi kích thước · bấm đúp để về mặc định',
 
-  'app.workspace': 'Workspace',
-  'app.backToWorkspace': 'Về Workspace',
   'view.entry': 'Nhập liệu',
   'entry.saved': 'Đã lưu',
   'split.label': 'Thay đổi độ rộng hai vùng',
@@ -305,7 +303,7 @@ export const vi: Record<MessageKey, string> = {
 
   'err.login': 'Phiên đăng nhập đã hết hạn hoặc không kết nối được API. Bấm “Đăng nhập lại”, xong quay về đây bấm “Thử lại”.',
   'err.forbidden': 'Tài khoản này không có quyền truy cập.',
-  'err.disabled': 'DaFinance đang bị tắt trong Workspace.',
+  'err.disabled': 'DaFinance đang bị tắt.',
   'err.generic': 'Có lỗi xảy ra: {message}',
   'err.relogin': 'Đăng nhập lại',
   'err.retry': 'Thử lại',
