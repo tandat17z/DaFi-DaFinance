@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { type ApiError, STANDALONE, toApiError } from '../lib/api'
-import { requestStorage, useAccount } from '../lib/account'
+import { openStorageRequest, useAccount } from '../lib/account'
 import { cn } from '../lib/cn'
 import { localDateIso, useFormat } from '../lib/format'
 import { localCounts, pushLocalToServer } from '../lib/storage'
@@ -92,13 +92,9 @@ function MoveToServer({ email, onMoved }: { email: string; onMoved: () => void }
 function BrowserOnly({ state }: { state: string }) {
   const { t } = useI18n()
   const { formatDate } = useFormat()
-  const { account, refresh } = useAccount()
+  const { account } = useAccount()
   const key = hiddenKey(account?.email ?? '', state)
   const [hidden, setHidden] = useState(() => isHidden(key))
-  const [asking, setAsking] = useState(false)
-  const [message, setMessage] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<ApiError | null>(null)
   if (!account || hidden) return null
 
   const status = account.request?.status
@@ -121,20 +117,6 @@ function BrowserOnly({ state }: { state: string }) {
     }
   }
 
-  const send = async () => {
-    setBusy(true)
-    setError(null)
-    try {
-      await requestStorage(message.trim())
-      setAsking(false)
-      refresh()
-    } catch (e) {
-      setError(toApiError(e))
-    } finally {
-      setBusy(false)
-    }
-  }
-
   return (
     <div role="status" className={cn('grid gap-3 rounded-xl border p-4 text-sm', pending ? 'border-border-strong bg-surface' : 'border-inc-4/40 bg-inc-4/5')}>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -142,40 +124,15 @@ function BrowserOnly({ state }: { state: string }) {
           <span className="font-medium text-fg">{t(pending ? 'storage.pendingTitle' : 'storage.title')}</span> {text}
         </p>
         <div className="flex shrink-0 gap-2">
-          {!pending && !asking && (
-            <Button variant="primary" onClick={() => setAsking(true)}>
+          {/* The request form lives in the account menu (with the rating & feedback form). */}
+          {!pending && (
+            <Button variant="primary" onClick={openStorageRequest}>
               {t('storage.request')}
             </Button>
           )}
-          {!asking && <Button onClick={hide}>{t('storage.hide')}</Button>}
+          <Button onClick={hide}>{t('storage.hide')}</Button>
         </div>
       </div>
-
-      {asking && (
-        <div className="grid gap-2">
-          <label className="grid gap-1.5 text-xs text-muted">
-            {t('storage.message')}
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              maxLength={500}
-              rows={2}
-              placeholder={t('storage.messagePlaceholder')}
-              className="rounded-lg border border-border-strong bg-bg px-3 py-2 text-sm text-fg placeholder:text-subtle"
-            />
-          </label>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="primary" disabled={busy} onClick={send}>
-              {busy ? t('storage.sending') : t('storage.send')}
-            </Button>
-            <Button disabled={busy} onClick={() => setAsking(false)}>
-              {t('storage.cancel')}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {error && (error.code === 'request_cooldown' ? <p className="text-xs text-expense">{t('storage.cooldown')}</p> : <ApiNotice error={error} />)}
     </div>
   )
 }

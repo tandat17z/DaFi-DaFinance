@@ -128,13 +128,7 @@ export const vi: Record<MessageKey, string> = {
   'storage.rejected': 'Yêu cầu lưu trên server chưa được chấp nhận. Dữ liệu vẫn lưu trên trình duyệt này; bạn có thể gửi lại.',
   'storage.revoked': 'Quyền lưu trên server của tài khoản này đã bị tắt. Dữ liệu đã được chép về trình duyệt này (bản trên server vẫn được giữ, chỉ xem).',
   'storage.request': 'Yêu cầu lưu trên server',
-  'storage.message': 'Lời nhắn (không bắt buộc)',
-  'storage.messagePlaceholder': 'vd: bạn là ai, cần dùng để làm gì',
-  'storage.send': 'Gửi yêu cầu',
-  'storage.sending': 'Đang gửi…',
-  'storage.cancel': 'Huỷ',
   'storage.hide': 'Ẩn',
-  'storage.cooldown': 'Bạn có thể gửi lại sau một ngày kể từ lần quyết định trước.',
   'storage.granted': 'Đã được lưu trên server. Trình duyệt này còn {tx} giao dịch và {holdings} khoản tài sản — chuyển chúng lên server nhé.',
 
   'tile.income': 'Thu nhập',
