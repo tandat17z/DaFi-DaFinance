@@ -17,7 +17,9 @@ import { Button, HeroTile, StatTile } from './components/ui'
 import { StorageNotice } from './components/StorageNotice'
 import { SettingsLauncher } from './components/Settings'
 import { API_ACCOUNT_URL, API_ME_URL, type ApiError, STANDALONE, toApiError } from './lib/api'
+import { askNotifyPermission, notifyOverBudget, overBudget } from './lib/budgetAlert'
 import { cn } from './lib/cn'
+import { useCategories } from './lib/settings'
 import { usePeriodLabel } from './lib/usePeriodLabel'
 import { todayIso, useFormat } from './lib/format'
 import { valueOf } from './lib/holdings'
@@ -43,6 +45,7 @@ export default function App() {
   const [period, setPeriod] = useState<{ unit: Unit; anchor: string }>(() => ({ unit: 'month', anchor: todayIso() }))
   const { unit, anchor } = period
   const store = useStore()
+  const { budgetOf } = useCategories()
   const all = useAllTransactions()
   const legacy = useLegacyImport(all.reload)
   const [editing, setEditing] = useState<Transaction | null>(null)
@@ -238,8 +241,12 @@ export default function App() {
                     key={editing?.id ?? 'new'}
                     editing={editing}
                     onSave={async (tx) => {
+                      // Ask while the save tap still counts as a user gesture.
+                      if (budgetOf(tx.category)) askNotifyPermission()
                       const ok = await run(() => store.saveTransaction(tx))
                       if (ok) {
+                        const over = overBudget(all.items, tx, budgetOf(tx.category))
+                        if (over) void notifyOverBudget(t('budget.alertTitle', { category: categoryName(tx.category) }), t('budget.over', { amount: formatVnd(over) }))
                         setEditing(null)
                         setSaved(tx)
                         // Keep the monthly view on the month of what was just saved.

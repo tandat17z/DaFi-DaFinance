@@ -38,6 +38,7 @@ export const en = {
   'budget.of': '{pct}% of {amount}',
   'budget.left': '{amount} left',
   'budget.over': 'Over by {amount}',
+  'budget.alertTitle': 'Over budget: {category}',
   'budget.unused': 'Budgeted, nothing spent yet',
   'layout.resize': 'Resize panels',
   'layout.resizeHint': 'Drag to resize · double-click to reset',

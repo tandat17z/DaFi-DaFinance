@@ -39,6 +39,7 @@ export const vi: Record<MessageKey, string> = {
   'budget.of': '{pct}% của {amount}',
   'budget.left': 'Còn {amount}',
   'budget.over': 'Vượt {amount}',
+  'budget.alertTitle': 'Vượt ngân sách: {category}',
   'budget.unused': 'Có ngân sách, chưa chi',
   'layout.resize': 'Đổi kích thước hai khung',
   'layout.resizeHint': 'Kéo để đổi kích thước · bấm đúp để về mặc định',

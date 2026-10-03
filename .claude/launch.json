@@ -11,6 +11,20 @@
       "port": 5174
     },
     {
+      "name": "finance-pwa-preview",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "preview",
+        "--mode",
+        "standalone",
+        "--port",
+        "4174",
+        "--strictPort"
+      ],
+      "port": 4174
+    },
+    {
       "name": "finance",
       "runtimeExecutable": "npm",
       "runtimeArgs": [
