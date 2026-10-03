@@ -5,6 +5,7 @@ import { isTransfer } from '../lib/transfers'
 import { useI18n } from '../locales'
 import type { Transaction, TxType } from '../lib/types'
 import { cn } from '../lib/cn'
+import { useCategories } from '../lib/settings'
 import { inSheet } from '../lib/sheet'
 import { Bubble } from './Bubble'
 import { Card } from './ui'
@@ -155,10 +156,13 @@ export function Donut({ data, total, caption, type }: { data: { name: string; to
  * Expense by category: a donut plus ranked bars; each bar carries its own label and slice colour.
  * `aside` entries (assigned to a month, left out of the donut) are listed above as separate
  * "<category> (for month)" rows, so a category can appear twice.
+ * `showBudget`: bars show the share of each category's monthly budget used (budgeted categories with
+ * no spending are listed too); categories without a budget keep the ranked bar.
  */
-export function CategoryChart({ items, aside, emptyText, toolbar, type = 'expense', className, stacked }: { items: Transaction[]; aside?: Transaction[]; emptyText?: string; toolbar?: ReactNode; type?: CatKind; className?: string; stacked?: boolean }) {
+export function CategoryChart({ items, aside, emptyText, toolbar, type = 'expense', className, stacked, showBudget }: { items: Transaction[]; aside?: Transaction[]; emptyText?: string; toolbar?: ReactNode; type?: CatKind; className?: string; stacked?: boolean; showBudget?: boolean }) {
   const { t } = useI18n()
-  const { formatVnd, categoryName } = useFormat()
+  const { formatVnd, formatShortVnd, categoryName } = useFormat()
+  const cats = useCategories()
   const group = (list: Transaction[]) => {
     const sums = new Map<string, { total: number; count: number; entries: Transaction[] }>()
     for (const x of list) {
@@ -176,7 +180,9 @@ export function CategoryChart({ items, aside, emptyText, toolbar, type = 'expens
   const asideData = useMemo(() => group(aside ?? []).map((d) => ({ ...d, key: `a:${d.key}`, name: `${d.name} (${t('cat.assignedSuffix')})`, isAside: true })), [aside, type, categoryName, t])
   const total = data.reduce((s, d) => s + d.total, 0)
   const asideTotal = asideData.reduce((s, d) => s + d.total, 0)
-  const rows = [...asideData, ...data.map((d) => ({ ...d, isAside: false }))]
+  // Budgeted categories with nothing spent yet, listed after the rest so the limit stays visible.
+  const unused = showBudget ? cats.expense.filter((k) => cats.budgetOf(k) > 0 && !data.some((d) => d.key === k)).map((key) => ({ key, name: categoryName(key), hue: hueOf(type, key), total: 0, count: 0, entries: [] as Transaction[], isAside: false })) : []
+  const rows = [...asideData, ...data.map((d) => ({ ...d, isAside: false })), ...unused]
 
   // Clicking a category lists its entries in a bubble under the row, like a day in the calendar.
   const [openKey, setOpenKey] = useState<string | null>(null)
@@ -202,7 +208,7 @@ export function CategoryChart({ items, aside, emptyText, toolbar, type = 'expens
       action={total > 0 && <span className="font-mono text-xs text-subtle">{formatVnd(total)}</span>}
     >
       {toolbar}
-      {rows.length === 0 ? (
+      {rows.length === 0 && unused.length === 0 ? (
         <div className="grid place-items-center gap-2 py-14 text-center">
           <span aria-hidden="true" className="grid size-10 place-items-center rounded-full border border-border bg-surface-2 font-mono text-subtle">
             ∅
@@ -221,6 +227,11 @@ export function CategoryChart({ items, aside, emptyText, toolbar, type = 'expens
             const groupTotal = d.isAside ? asideTotal : total
             const groupMax = d.isAside ? (asideData[0]?.total ?? 0) : (data[0]?.total ?? 0)
             const share = groupTotal > 0 ? d.total / groupTotal : 0
+            const budget = showBudget && !d.isAside ? cats.budgetOf(d.key) : 0
+            const used = budget > 0 ? d.total / budget : 0
+            // Budget bar: own hue while under 80 %, amber when close, red once over.
+            const barCls = budget > 0 ? (used > 1 ? 'bg-expense' : used >= 0.8 ? 'bg-cat-2' : bgOf(type, d.hue)) : bgOf(type, d.hue)
+            const width = budget > 0 ? Math.min(100, used * 100) : groupMax === 0 ? 0 : Math.max(2, (d.total / groupMax) * 100)
             return (
               <li key={d.key} className={cn('relative', d.isAside && 'border-l-2 border-accent/60 pl-2.5')}>
                 <button
@@ -231,16 +242,25 @@ export function CategoryChart({ items, aside, emptyText, toolbar, type = 'expens
                   className={cn('block w-full rounded-md text-left', d.entries.length > 0 && 'cursor-pointer hover:bg-surface-2/60', openKey === d.key && 'bg-surface-2/60')}
                 >
                 <div className="flex items-baseline gap-3 text-sm">
-                  <span aria-hidden="true" className={`size-2 shrink-0 self-center rounded-sm ${bgOf(type, d.hue)}`} />
+                  <span aria-hidden="true" className="w-5 shrink-0 self-center text-center text-base leading-none">{cats.iconOf(d.key.replace(/^a:/, ''))}</span>
                   <span className="min-w-0 flex-1 break-words">{d.name}</span>
-                  <span className="font-mono text-xs text-subtle">
-                    {t('cat.count', { count: d.count })} · {Math.round(share * 100)}%
+                  <span className="font-mono text-xs whitespace-nowrap text-subtle">
+                    {budget > 0 ? d.count > 0 && t('cat.count', { count: d.count }) : `${t('cat.count', { count: d.count })} · ${Math.round(share * 100)}%`}
                   </span>
-                  <span className="w-28 text-right font-mono text-xs tabular-nums">{formatVnd(d.total)}</span>
+                  <span className="text-right font-mono text-xs whitespace-nowrap tabular-nums sm:w-28">{formatVnd(d.total)}</span>
                 </div>
-                <div className="mt-1.5 h-1.5 rounded-full bg-surface-2">
-                  <div className={`h-full rounded-full transition-[width] duration-500 ease-out ${bgOf(type, d.hue)}`} style={{ width: groupMax === 0 ? 0 : `${Math.max(2, (d.total / groupMax) * 100)}%` }} />
+                <div className={cn('relative mt-1.5 rounded-full bg-surface-2', budget > 0 ? 'h-2' : 'h-1.5')} role={budget > 0 ? 'meter' : undefined} aria-valuemin={budget > 0 ? 0 : undefined} aria-valuemax={budget > 0 ? budget : undefined} aria-valuenow={budget > 0 ? d.total : undefined}>
+                  <div className={`h-full rounded-full transition-[width] duration-500 ease-out ${barCls}`} style={{ width: `${width}%` }} />
+                  {budget > 0 && used > 0.8 && used <= 1 && <span aria-hidden="true" className="absolute inset-y-0 left-[80%] w-px bg-bg/70" />}
                 </div>
+                {budget > 0 && (
+                  <div className="mt-1 flex justify-between gap-2 font-mono text-[10px] tabular-nums text-subtle">
+                    <span className={cn(used > 1 ? 'text-expense' : used >= 0.8 && 'text-cat-2')}>{t('budget.of', { pct: Math.round(used * 100), amount: formatShortVnd(budget) })}</span>
+                    <span className={cn(used > 1 && 'text-expense')}>
+                    {d.total === 0 ? t('budget.unused') : used > 1 ? t('budget.over', { amount: formatVnd(d.total - budget) }) : t('budget.left', { amount: formatVnd(budget - d.total) })}
+                    </span>
+                  </div>
+                )}
                 </button>
                 {openKey === d.key && <EntriesBubble title={d.name} type={type} items={d.entries} onClose={() => setOpenKey(null)} />}
               </li>

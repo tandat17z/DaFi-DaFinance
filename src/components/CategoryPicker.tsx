@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { categories, TRANSFER_CATEGORIES } from '../config/categories'
 import { useFormat } from '../lib/format'
+import { useCategories } from '../lib/settings'
 import { useIsPhone } from '../lib/sheet'
 import { useI18n } from '../locales'
 import { Bubble } from './Bubble'
@@ -11,6 +11,7 @@ import type { Transaction } from '../lib/types'
 export function CategoryPicker({ tx, onPick }: { tx: Transaction; onPick: (category: string) => void }) {
   const { t } = useI18n()
   const { categoryName } = useFormat()
+  const cats = useCategories()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const root = useRef<HTMLDivElement>(null)
@@ -44,7 +45,7 @@ export function CategoryPicker({ tx, onPick }: { tx: Transaction; onPick: (categ
   }, [open, phone])
 
   const q = query.trim().toLowerCase()
-  const options = (tx.type === 'expense' ? [...categories.expense, ...TRANSFER_CATEGORIES] : categories.income).filter(
+  const options = (tx.type === 'expense' ? cats.expenseWithTransfers : cats.income).filter(
     (c) => !q || categoryName(c).toLowerCase().includes(q) || c.includes(q),
   )
   const pick = (c: string) => {
@@ -76,7 +77,7 @@ export function CategoryPicker({ tx, onPick }: { tx: Transaction; onPick: (categ
             {options.map((c) => (
               <li key={c} role="option" aria-selected={false}>
                 <button type="button" onClick={() => pick(c)} className="w-full rounded-lg px-3 py-3 text-left text-base text-fg active:bg-bg">
-                  {categoryName(c)}
+                  {cats.iconOf(c)} {categoryName(c)}
                 </button>
               </li>
             ))}
@@ -101,7 +102,7 @@ export function CategoryPicker({ tx, onPick }: { tx: Transaction; onPick: (categ
             {options.map((c) => (
               <li key={c} role="option" aria-selected={false}>
                 <button type="button" onClick={() => pick(c)} className="w-full rounded px-2 py-1.5 text-left text-sm text-fg hover:bg-surface-2">
-                  {categoryName(c)}
+                  {cats.iconOf(c)} {categoryName(c)}
                 </button>
               </li>
             ))}

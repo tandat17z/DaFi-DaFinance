@@ -15,6 +15,7 @@ import { TxForm } from './components/TxForm'
 import { TxList } from './components/TxList'
 import { Button, HeroTile, StatTile } from './components/ui'
 import { StorageNotice } from './components/StorageNotice'
+import { SettingsButton } from './components/Settings'
 import { API_ACCOUNT_URL, API_ME_URL, type ApiError, STANDALONE, toApiError } from './lib/api'
 import { cn } from './lib/cn'
 import { usePeriodLabel } from './lib/usePeriodLabel'
@@ -188,6 +189,7 @@ export default function App() {
             {(view === 'month' || view === 'entry') && <PeriodBar className="min-w-0 flex-1 justify-center lg:flex-none" unit={unit} anchor={anchor} onChange={setPeriod} marked={markedDates} />}
             <div className="flex shrink-0 items-center gap-2 max-sm:[&_summary>span:last-of-type]:hidden max-sm:[&_summary>svg]:hidden sm:gap-3">
               <LanguageSwitch label={t('lang.label')} />
+              <SettingsButton />
               {!STANDALONE && <tdz-account key={locale} lang={locale} me-url={API_ME_URL} account-url={API_ACCOUNT_URL} />}
             </div>
           </div>
@@ -381,7 +383,7 @@ export default function App() {
                   <SpendingCalendar all={all.items} anchor={anchor} unit={unit} />
                 </div>
               }
-              right={<CategoryBreakdown className="lg:h-full lg:min-h-0" stacked items={items} byDate={itemsByDate} canAssign={unit === 'month' || unit === 'year'} />}
+              right={<CategoryBreakdown className="lg:h-full lg:min-h-0" stacked items={items} byDate={itemsByDate} canAssign={unit === 'month' || unit === 'year'} showBudget={unit === 'month'} />}
             />
           </>
         )}

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { categories, categoryKey, TRANSFER_CATEGORIES } from '../config/categories'
+import { categoryKey } from '../config/categories'
+import { useCategories } from '../lib/settings'
 import { useFormat } from '../lib/format'
 import { useI18n } from '../locales'
 import type { Transaction } from '../lib/types'
@@ -14,6 +15,7 @@ const SHEET_MAX = 640
 export function EditBubble({ tx, label, children, onSave }: { tx: Transaction; label: string; children: ReactNode; onSave: (tx: Transaction) => Promise<boolean> }) {
   const { t } = useI18n()
   const { categoryName } = useFormat()
+  const cats = useCategories()
   const [open, setOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [pos, setPos] = useState({ top: 0, left: 0 })
@@ -70,7 +72,7 @@ export function EditBubble({ tx, label, children, onSave }: { tx: Transaction; l
     if (ok) setOpen(false)
   }
 
-  const base = tx.type === 'expense' ? [...categories.expense, ...TRANSFER_CATEGORIES] : categories.income
+  const base = tx.type === 'expense' ? cats.expenseWithTransfers : cats.income
   const options = base.includes(d.category) ? base : [d.category, ...base]
 
   return (
@@ -103,7 +105,7 @@ export function EditBubble({ tx, label, children, onSave }: { tx: Transaction; l
               <select className="field" value={d.category} onChange={(e) => set({ category: e.target.value })}>
                 {options.map((c) => (
                   <option key={c} value={c}>
-                    {categoryName(c)}
+                    {cats.iconOf(c)} {categoryName(c)}
                   </option>
                 ))}
               </select>

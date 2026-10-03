@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { cn } from '../lib/cn'
 import { downloadCsv } from '../lib/csv'
-import { categories, categoryKey, TRANSFER_CATEGORIES, UNCATEGORIZED } from '../config/categories'
+import { categoryKey, TRANSFER_CATEGORIES, UNCATEGORIZED } from '../config/categories'
+import { useCategories } from '../lib/settings'
 import { isSpending, isTransfer } from '../lib/transfers'
 import { useFormat } from '../lib/format'
 import { useI18n } from '../locales'
@@ -31,6 +32,7 @@ function useColumns(): [number, (el: HTMLDivElement | null) => void] {
 export function TxList({ items, focusId, label, fileTag, onSave, onDelete, onCategorize }: { items: Transaction[]; focusId?: string | null; label: string; fileTag: string; onSave: (t: Transaction) => Promise<boolean>; onDelete: (id: string) => void; onCategorize: (t: Transaction, category: string) => void }) {
   const { t } = useI18n()
   const { formatDayHeader, formatVnd, categoryName } = useFormat()
+  const cats = useCategories()
   const [query, setQuery] = useState('')
   const [kind, setKind] = useState<'all' | 'expense' | 'income' | 'transfer'>('all')
   const [category, setCategory] = useState('')
@@ -48,7 +50,7 @@ export function TxList({ items, focusId, label, fileTag, onSave, onDelete, onCat
   const q = query.trim().toLowerCase()
   const matchesKind = (x: Transaction) => kind === 'all' || (kind === 'income' ? x.type === 'income' : kind === 'expense' ? isSpending(x) : isTransfer(x))
   // Category choices: the keys of the selected type, plus any other key present in this period.
-  const options = [...new Set([...(kind === 'all' ? [...categories.expense, ...TRANSFER_CATEGORIES, ...categories.income] : kind === 'transfer' ? TRANSFER_CATEGORIES : categories[kind]), ...items.filter(matchesKind).map((x) => categoryKey(x.category))])]
+  const options = [...new Set([...(kind === 'all' ? [...cats.expenseWithTransfers, ...cats.income] : kind === 'transfer' ? TRANSFER_CATEGORIES : cats[kind]), ...items.filter(matchesKind).map((x) => categoryKey(x.category))])]
   const shown = items
     .filter(matchesKind)
     .filter((x) => !onlyNone || isNone(x))
@@ -154,9 +156,9 @@ export function TxList({ items, focusId, label, fileTag, onSave, onDelete, onCat
                     >
                       <span
                         aria-hidden="true"
-                        className={cn('row-span-2 grid size-8 place-items-center rounded-lg font-mono text-xs font-medium', tx.type === 'income' ? 'bg-income/10 text-income' : 'bg-expense/10 text-expense')}
+                        className={cn('row-span-2 grid size-8 place-items-center rounded-lg text-base', tx.type === 'income' ? 'bg-income/10 text-income' : 'bg-expense/10 text-expense')}
                       >
-                        {categoryName(tx.category).charAt(0).toUpperCase()}
+                        {cats.iconOf(tx.category)}
                       </span>
                       <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 self-center text-sm">
                         <span className={cn('shrink-0', isNone(tx) && 'text-cat-2')}>{categoryName(tx.category)}</span>

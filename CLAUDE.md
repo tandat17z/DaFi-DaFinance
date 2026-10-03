@@ -47,7 +47,7 @@ This repository is public. Before every commit:
 - Data access goes through a `FinanceStore` (`src/lib/storage.ts`): `serverStore` (API) or `localStore(key)` (localStorage, `dafinance.u.<key>.*`). Components use `useStore()`, never `apiFetch` for data. Totals are computed in the app.
 - Hosted: the API is called at `/api/...` on this host; `worker/index.js` (`createApiProxy` from `@tada/kit/proxy`) forwards only `/api/v1/finance/*` and `/api/health` to the API Worker (service binding) with the Access JWT, and refuses cross-site writes. Where data lives comes from `GET /v1/finance/account` (`src/lib/account.ts`, read by `AccountGate` from `@tada/kit/account`, re-read when the tab/window comes back): `cloud` → `serverStore`; `local` → `localStore(email)`; `readonly` (grant revoked) → server data copied into the browser once, then local. After approval, `StorageNotice` moves browser data to the server. The API enforces all of this; the frontend only follows it. The old key `dafinance.transactions` is only read for the one-off "Chuyển lên server" import.
 - Security: no tokens or secrets in the frontend; React escaping only (no `innerHTML` with data); `public/_headers` sets CSP, `X-Frame-Options`, `noindex`; CSV export neutralises formula cells.
-- Theme: **dark only**, colour tokens from `@tada/kit/tokens.css` (imported in `src/index.css`, which adds fonts and base styles). Use token classes (`bg-surface`, `border-border`, `text-muted`, `text-income`, `text-expense`…), never raw hex in components.
+- Theme: dark by default, light from Settings (`data-theme="light"` on `<html>`; light token values in `src/index.css`). Colour tokens from `@tada/kit/tokens.css` (imported in `src/index.css`, which adds fonts and base styles). Use token classes (`bg-surface`, `border-border`, `text-muted`, `text-income`, `text-expense`…), never raw hex in components.
 - Package manager: npm. Lint: oxlint.
 
 ## Structure
@@ -62,11 +62,16 @@ src/
 │   ├── CategoryChart.tsx# Expense by category, ranked bars (single hue)
 │   ├── TxList.tsx       # Search, list grouped by day, edit/delete, CSV export
 │   ├── AccountGate.tsx  # Standalone store, or reads the account and provides the store (server / browser)
-│   └── StorageNotice.tsx# Browser-only banner + storage request; move browser data up after approval
+│   ├── StorageNotice.tsx# Browser-only banner + storage request; move browser data up after approval
+│   └── Settings.tsx     # Gear button + drawer: theme, user categories + icons, monthly budget per expense category
 ├── config/categories.ts # Income / expense category keys (+ legacy Vietnamese name map)
 ├── locales/             # en.ts, vi.ts dictionaries + the app's i18n instance (@tada/kit/i18n)
-└── lib/                 # types, api client, account, storage (FinanceStore, hooks, legacy import), format, csv, cn
+└── lib/                 # types, api client, account, storage (FinanceStore, hooks, legacy import), settings, format, csv, cn
 ```
+
+Settings (`src/lib/settings.tsx`, localStorage `dafinance.settings`, this browser only): theme, user categories
+(`{ key: 'c-…', type, name, icon }`, name shown as typed), icon overrides, `budgets` (VND per month per expense key).
+In a one-month period the category bars show the share of each budget used.
 
 Transaction: `{ id, type: 'income' | 'expense', amount (integer VND), category, date: 'YYYY-MM-DD' (local), note }`.
 

@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
-import { categories, categoryKey } from '../config/categories'
+import { categoryKey, UNCATEGORIZED } from '../config/categories'
+import { useCategories } from '../lib/settings'
 import { cn } from '../lib/cn'
 import { todayIso, useFormat } from '../lib/format'
 import { useI18n } from '../locales'
@@ -14,14 +15,15 @@ const QUICK: Record<TxType, number[]> = {
 
 type Draft = { type: TxType; amount: string; category: string; date: string; note: string; forMonth: string; time: string }
 
-const empty = (): Draft => ({ type: 'expense', amount: '', category: categories.expense[0], date: todayIso(), note: '', forMonth: '', time: '' })
+const empty = (first: string): Draft => ({ type: 'expense', amount: '', category: first, date: todayIso(), note: '', forMonth: '', time: '' })
 const fromTx = (t: Transaction): Draft => ({ ...t, category: categoryKey(t.category), amount: String(t.amount), forMonth: t.forMonth ?? '', time: t.time ?? '' })
 
 /** Add/edit form. Remount with a new `key` to load a different transaction. */
 export function TxForm({ editing, onSave, onCancel }: { editing: Transaction | null; onSave: (tx: Transaction) => Promise<boolean>; onCancel: () => void }) {
   const { t } = useI18n()
   const { formatShortVnd, categoryName } = useFormat()
-  const [d, setD] = useState<Draft>(() => (editing ? fromTx(editing) : empty()))
+  const cats = useCategories()
+  const [d, setD] = useState<Draft>(() => (editing ? fromTx(editing) : empty(cats.expense[0] ?? UNCATEGORIZED)))
   const [saving, setSaving] = useState(false)
   const set = (patch: Partial<Draft>) => setD((prev) => ({ ...prev, ...patch }))
 
@@ -33,7 +35,7 @@ export function TxForm({ editing, onSave, onCancel }: { editing: Transaction | n
     const ok = await onSave({ id: editing?.id ?? crypto.randomUUID(), type: d.type, amount, category: d.category, date: d.date, time: d.time || null, note: d.note.trim(), forMonth: d.forMonth || null })
     setSaving(false)
     // Keep the draft when saving failed so nothing typed is lost.
-    if (ok) setD(empty())
+    if (ok) setD(empty(cats.expense[0] ?? UNCATEGORIZED))
   }
 
   // Time and "for month" are rarely needed: tucked into a disclosure that opens by itself when they have a value.
@@ -49,7 +51,7 @@ export function TxForm({ editing, onSave, onCancel }: { editing: Transaction | n
               type="button"
               role="radio"
               aria-checked={d.type === type}
-              onClick={() => set({ type, category: categories[type][0] })}
+              onClick={() => set({ type, category: cats[type][0] ?? UNCATEGORIZED })}
               className={cn(
                 'rounded-md py-1.5 text-sm font-medium transition-colors',
                 d.type === type ? (type === 'expense' ? 'bg-expense/15 text-expense' : 'bg-income/15 text-income') : 'text-muted hover:text-fg',
@@ -87,9 +89,9 @@ export function TxForm({ editing, onSave, onCancel }: { editing: Transaction | n
         <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-2.5">
           <Label text={t('form.category')}>
             <select className="field" value={d.category} onChange={(e) => set({ category: e.target.value })}>
-              {(categories[d.type].includes(d.category) ? categories[d.type] : [d.category, ...categories[d.type]]).map((c) => (
+              {(cats[d.type].includes(d.category) ? cats[d.type] : [d.category, ...cats[d.type]]).map((c) => (
                 <option key={c} value={c}>
-                  {categoryName(c)}
+                  {cats.iconOf(c)} {categoryName(c)}
                 </option>
               ))}
             </select>

@@ -13,7 +13,8 @@ const TABS: { id: CatKind; label: MessageKey; active: string; empty: MessageKey 
 ]
 
 /** Category split of the selected period: spending, income, or money moved into savings / investments. */
-export function CategoryBreakdown({ items, byDate, canAssign, className, stacked }: { items: Transaction[]; byDate: Transaction[]; canAssign: boolean; className?: string; stacked?: boolean }) {
+/** `showBudget`: the period is one month, so spending can be compared with the monthly budgets. */
+export function CategoryBreakdown({ items, byDate, canAssign, showBudget, className, stacked }: { items: Transaction[]; byDate: Transaction[]; canAssign: boolean; showBudget?: boolean; className?: string; stacked?: boolean }) {
   const { t } = useI18n()
   const [type, setType] = useState<CatKind>('expense')
   const tab = TABS.find((x) => x.id === type)!
@@ -46,5 +47,5 @@ export function CategoryBreakdown({ items, byDate, canAssign, className, stacked
     </div>
   )
 
-  return <CategoryChart className={className} stacked={stacked} items={useAssigned ? items : byDate} aside={canAssign && !useAssigned ? items.filter(isAssignedAway) : undefined} emptyText={t(tab.empty)} toolbar={toolbar} type={type} />
+  return <CategoryChart className={className} stacked={stacked} items={useAssigned ? items : byDate} aside={canAssign && !useAssigned ? items.filter(isAssignedAway) : undefined} emptyText={t(tab.empty)} toolbar={toolbar} type={type} showBudget={showBudget && type === 'expense'} />
 }

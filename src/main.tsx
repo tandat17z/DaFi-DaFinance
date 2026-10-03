@@ -7,13 +7,16 @@ import './index.css'
 import App from './App.tsx'
 import { AccountGate } from './components/AccountGate'
 import { I18nProvider } from './locales'
+import { SettingsProvider } from './lib/settings'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <I18nProvider>
-      <AccountGate>
-        <App />
-      </AccountGate>
+      <SettingsProvider>
+        <AccountGate>
+          <App />
+        </AccountGate>
+      </SettingsProvider>
     </I18nProvider>
   </StrictMode>,
 )

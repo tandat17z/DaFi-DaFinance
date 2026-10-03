@@ -12,6 +12,42 @@ export const categories: Record<TxType, string[]> = {
  */
 export const TRANSFER_CATEGORIES = ['savings', 'investment']
 
+/** Default icon per built-in category key (the user can change them in Settings). */
+export const DEFAULT_ICONS: Record<string, string> = {
+  food: '🍜',
+  transport: '🛵',
+  housing: '🏠',
+  shopping: '🛍️',
+  entertainment: '🎬',
+  health: '💊',
+  education: '📚',
+  bills: '🧾',
+  gifts: '🎁',
+  other: '📦',
+  salary: '💼',
+  bonus: '🎉',
+  interest: '🏦',
+  investment: '📈',
+  gift: '🎁',
+  savings: '🐷',
+  none: '❔',
+}
+
+/** Icons offered when picking one for a category, grouped (group names come from `icons.<group>`). */
+export const ICON_GROUPS = {
+  food: ['🍜', '🍲', '🍚', '🍱', '🍣', '🍕', '🍔', '🍟', '🌮', '🥗', '🥪', '🍗', '🥩', '🍳', '🥐', '🍰', '🍦', '🍩', '🍪', '🍫', '🍎', '🍌', '🥑', '☕', '🧋', '🍵', '🥤', '🍺', '🍷', '🥂', '🛒', '🧺'],
+  transport: ['🛵', '🏍️', '🚗', '🚕', '🚌', '🚇', '🚆', '🚲', '🛴', '✈️', '🚢', '⛽', '🅿️', '🔋', '🛞', '🚦', '🗺️', '🧳', '🏨', '🏖️', '⛰️', '🏕️'],
+  home: ['🏠', '🏢', '🛋️', '🛏️', '🚿', '🛁', '🧹', '🧺', '🧼', '🪴', '💡', '🔌', '💧', '🔥', '📶', '📺', '🖥️', '🧊', '🔧', '🔨', '🪛', '🔑', '🧾', '📬'],
+  shopping: ['🛍️', '👕', '👖', '👗', '👟', '👠', '👜', '🎒', '👓', '⌚', '💍', '💄', '🧴', '💇', '💅', '📱', '💻', '🎧', '📷', '🕹️', '🧸', '🎁'],
+  fun: ['🎬', '🍿', '🎮', '🎵', '🎤', '🎸', '🎨', '📖', '🎭', '🎟️', '🎳', '🎯', '⚽', '🏀', '🏸', '🎾', '🏊', '🚴', '🏋️', '🧘', '⛳', '🎲', '🎉', '🎂'],
+  health: ['💊', '💉', '🩺', '🏥', '🦷', '👁️', '🩹', '🧠', '❤️', '🧘', '🛡️', '😴'],
+  work: ['📚', '🎓', '✏️', '📝', '📒', '🏫', '💼', '🖨️', '📊', '🧑‍💻', '🌐', '☁️', '📦', '✉️'],
+  family: ['👶', '🍼', '🧒', '👪', '👵', '💑', '💐', '🐶', '🐱', '🐟', '🐦', '🦴', '🙏', '⛪', '🕯️', '🧧'],
+  money: ['💰', '💵', '💳', '🏦', '📈', '📉', '🪙', '💎', '🐷', '🧾', '💸', '🤝', '🏆', '⭐', '🎉', '💼'],
+  other: ['📦', '❔', '⚙️', '🔔', '📌', '🏷️', '🔒', '♻️', '🌱', '☀️', '🌧️', '❄️', '🚬', '🍀', '🎗️', '🚩'],
+} as const
+export type IconGroup = keyof typeof ICON_GROUPS
+
 /** Placeholder for transactions not classified yet (e.g. from the iPhone Shortcut); highlighted in the list. */
 export const UNCATEGORIZED = 'none'
 

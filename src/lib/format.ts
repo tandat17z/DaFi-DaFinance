@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { categoryKey } from '../config/categories'
 import { useI18n } from '../locales'
+import { useCategories } from './settings'
 
 /** Local date as YYYY-MM-DD (not UTC, so late-evening entries land on the right day). */
 export function todayIso(): string {
@@ -21,6 +22,7 @@ export function shiftMonth(month: string, delta: number): string {
 /** Locale-aware formatters; call `useFormat()` in a component and destructure what you need. */
 export function useFormat() {
   const { intl, t, tOr } = useI18n()
+  const { customName } = useCategories()
   return useMemo(() => {
     const vnd = new Intl.NumberFormat(intl)
     const monthParams = (month: string, style: 'long' | 'short') => ({
@@ -44,8 +46,8 @@ export function useFormat() {
         if (n >= 1e3) return `${Math.round(n / 1e3)}k`
         return String(n)
       },
-      /** Display name of a stored category key (legacy Vietnamese names are mapped; custom values show as typed). */
-      categoryName: (raw: string) => tOr(`category.${categoryKey(raw)}`, raw),
+      /** Display name of a stored category key (legacy Vietnamese names are mapped; user categories and unknown values show as typed). */
+      categoryName: (raw: string) => customName(raw) ?? tOr(`category.${categoryKey(raw)}`, raw),
     }
-  }, [intl, t, tOr])
+  }, [intl, t, tOr, customName])
 }
