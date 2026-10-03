@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { categoryKey, UNCATEGORIZED } from '../config/categories'
 import { useCategories } from '../lib/settings'
 import { evaluate } from '../lib/calc'
@@ -6,6 +6,7 @@ import { cn } from '../lib/cn'
 import { todayIso, useFormat } from '../lib/format'
 import { useI18n } from '../locales'
 import type { Transaction, TxType } from '../lib/types'
+import { CalcPad } from './CalcPad'
 import { Button, Card, Label } from './ui'
 
 /** Common amounts, one tap to fill the field. */
@@ -44,6 +45,9 @@ export function TxForm({ editing, onSave, onCancel }: { editing: Transaction | n
   const set = (patch: Partial<Draft>) => setD((prev) => ({ ...prev, ...patch }))
   // Quick-math mode: the amount field takes an expression in thousands ("149 + 480" → 629.000 ₫).
   const [calc, setCalc] = useState(readCalc)
+  // The calculator bubble opens when the quick-math field is tapped.
+  const [pad, setPad] = useState(false)
+  const amountField = useRef<HTMLDivElement>(null)
   const toggleCalc = () => {
     const next = !calc
     setCalc(next)
@@ -101,14 +105,16 @@ export function TxForm({ editing, onSave, onCancel }: { editing: Transaction | n
               {t('form.calc')}
             </label>
           </div>
-          <div className="relative">
+          <div ref={amountField} className="relative">
             {calc ? (
               <input
                 id="tx-amount"
                 className="field pr-32 font-mono text-lg"
                 type="text"
-                inputMode="text"
+                inputMode="none"
                 autoComplete="off"
+                onFocus={() => setPad(true)}
+                onClick={() => setPad(true)}
                 required
                 value={d.amount}
                 onChange={(e) => set({ amount: e.target.value.replace(/[^\d+\-*/xX×÷().,\s]/g, '') })}
@@ -123,6 +129,7 @@ export function TxForm({ editing, onSave, onCancel }: { editing: Transaction | n
             </span>
           </div>
           {calc && value > 0 && /[+\-*/xX×÷]/.test(d.amount.trim().replace(/^[-+]/, '')) && <span className="text-right font-mono text-xs text-subtle tabular-nums">= {formatVnd(value)}</span>}
+          {calc && pad && <CalcPad anchor={amountField} value={d.amount} onChange={(amount) => set({ amount })} onClose={() => setPad(false)} />}
         </div>
         <div className="-mx-4 -mt-1 flex gap-1.5 overflow-x-auto px-4 pb-0.5 [scrollbar-width:none] sm:-mx-5 sm:px-5 [&::-webkit-scrollbar]:hidden" aria-label={t('form.quick')}>
           {QUICK[d.type].map((n) => (
